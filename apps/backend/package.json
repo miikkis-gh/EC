@@ -27,7 +27,8 @@
     "@medusajs/dashboard": "^2.13.1",
     "@medusajs/framework": "2.13.1",
     "@medusajs/medusa": "2.13.1",
-    "meilisearch": "^0.55.0"
+    "meilisearch": "^0.55.0",
+    "resend": "^6.9.2"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.13.1",
