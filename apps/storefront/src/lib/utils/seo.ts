@@ -38,3 +38,67 @@ export function buildMetaTags(meta: MetaTags): Array<{ name?: string; property?:
 
 	return tags;
 }
+
+// --- JSON-LD Structured Data ---
+
+export function buildOrganizationJsonLd(siteUrl: string): string {
+	return JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'Organization',
+		name: 'EC1',
+		url: siteUrl
+	});
+}
+
+export function buildWebsiteJsonLd(siteUrl: string): string {
+	return JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: 'EC1',
+		url: siteUrl,
+		potentialAction: {
+			'@type': 'SearchAction',
+			target: `${siteUrl}/products?q={search_term_string}`,
+			'query-input': 'required name=search_term_string'
+		}
+	});
+}
+
+export function buildProductJsonLd(product: {
+	title: string;
+	description: string | null;
+	handle: string;
+	thumbnail: string | null;
+	variants: Array<{
+		calculated_price?: { calculated_amount: number; currency_code: string };
+		prices: Array<{ amount: number; currency_code: string }>;
+		inventory_quantity: number;
+	}>;
+}, siteUrl: string): string {
+	const variant = product.variants[0];
+	const price = variant?.calculated_price?.calculated_amount ?? variant?.prices?.[0]?.amount;
+	const currency = variant?.calculated_price?.currency_code ?? variant?.prices?.[0]?.currency_code ?? 'EUR';
+	const inStock = variant ? variant.inventory_quantity > 0 || !('manage_inventory' in variant) : true;
+
+	return JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'Product',
+		name: product.title,
+		description: product.description ?? undefined,
+		image: product.thumbnail ?? undefined,
+		url: `${siteUrl}/products/${product.handle}`,
+		...(price != null
+			? {
+					offers: {
+						'@type': 'Offer',
+						price: (price / 100).toFixed(2),
+						priceCurrency: currency.toUpperCase(),
+						availability: inStock
+							? 'https://schema.org/InStock'
+							: 'https://schema.org/OutOfStock',
+						url: `${siteUrl}/products/${product.handle}`
+					}
+				}
+			: {})
+	});
+}

@@ -3,6 +3,8 @@
 	import QuantitySelector from '$components/shop/QuantitySelector.svelte';
 	import { addToCartOptimistic } from '$stores/cart';
 	import { fadeInUp } from '$utils/animations';
+	import { buildProductJsonLd } from '$utils/seo';
+	import { page } from '$app/stores';
 	import type { Product } from '$server/medusa';
 
 	interface Props {
@@ -10,6 +12,7 @@
 	}
 
 	let { data }: Props = $props();
+	let siteUrl = $derived($page.data.siteUrl as string);
 	let product = $derived(data.product);
 	let selectedVariantIndex = $state(0);
 	let quantity = $state(1);
@@ -48,6 +51,7 @@
 	{#if product.description}
 		<meta name="description" content={product.description} />
 	{/if}
+	{@html `<script type="application/ld+json">${buildProductJsonLd(product, siteUrl)}</script>`}
 </svelte:head>
 
 <div bind:this={pageEl} class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

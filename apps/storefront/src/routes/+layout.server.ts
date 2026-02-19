@@ -1,5 +1,6 @@
 import type { LayoutServerLoad } from './$types';
 import { getCart } from '$server/medusa';
+import { env } from '$env/dynamic/public';
 
 export const load: LayoutServerLoad = async ({ cookies, locals }) => {
 	const cartId = cookies.get('cart_id');
@@ -16,6 +17,7 @@ export const load: LayoutServerLoad = async ({ cookies, locals }) => {
 
 	return {
 		cart,
-		user: locals.user
+		user: locals.user,
+		siteUrl: env.PUBLIC_STORE_URL || 'http://localhost:5173'
 	};
 };

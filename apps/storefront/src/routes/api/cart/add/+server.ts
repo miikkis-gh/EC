@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'lax',
-			secure: false, // TODO: set to true in production
+			secure: !import.meta.env.DEV,
 			maxAge: 60 * 60 * 24 * 30 // 30 days
 		});
 	}

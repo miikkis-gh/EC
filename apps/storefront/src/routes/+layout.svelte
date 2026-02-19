@@ -13,10 +13,11 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { Snippet } from 'svelte';
+	import { buildOrganizationJsonLd, buildWebsiteJsonLd } from '$utils/seo';
 	import type { AuthUser } from '$server/auth';
 
 	interface Props {
-		data: { cart: import('$server/medusa').Cart | null; user: AuthUser | null };
+		data: { cart: import('$server/medusa').Cart | null; user: AuthUser | null; siteUrl: string };
 		children: Snippet;
 	}
 
@@ -45,6 +46,11 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	{@html `<script type="application/ld+json">${buildOrganizationJsonLd(data.siteUrl)}</script>`}
+	{@html `<script type="application/ld+json">${buildWebsiteJsonLd(data.siteUrl)}</script>`}
+</svelte:head>
 
 <svelte:window onkeydown={handleKeydown} />
 
