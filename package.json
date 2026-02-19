@@ -1,0 +1,12 @@
+{
+  "name": "my-store",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter './apps/**' run dev",
+    "dev:backend": "pnpm --filter backend run dev",
+    "dev:storefront": "pnpm --filter storefront run dev",
+    "build": "pnpm --filter './apps/**' run build",
+    "lint": "pnpm --filter './apps/**' run lint",
+    "check": "pnpm --filter './apps/**' run check"
+  }
+}
