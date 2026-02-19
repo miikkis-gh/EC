@@ -38,11 +38,12 @@ const securityHandle: Handle = async ({ event, resolve }) => {
 		'Content-Security-Policy',
 		[
 			"default-src 'self'",
-			"script-src 'self' 'unsafe-inline'",
+			"script-src 'self' 'unsafe-inline' https://js.stripe.com",
 			"style-src 'self' 'unsafe-inline'",
-			"img-src 'self' data: https://res.cloudinary.com https://*.cloudinary.com",
+			"img-src 'self' data: https://res.cloudinary.com https://*.cloudinary.com https://*.stripe.com",
 			"font-src 'self'",
-			"connect-src 'self' http://localhost:9000 http://localhost:7700",
+			"connect-src 'self' http://localhost:9000 http://localhost:7700 https://api.stripe.com",
+			"frame-src https://js.stripe.com https://hooks.stripe.com",
 			"frame-ancestors 'none'"
 		].join('; ')
 	);

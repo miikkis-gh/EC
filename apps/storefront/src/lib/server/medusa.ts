@@ -54,6 +54,7 @@ export interface Collection {
 
 export interface Cart {
 	id: string;
+	email: string | null;
 	items: LineItem[];
 	region_id: string;
 	currency_code: string;
@@ -63,6 +64,17 @@ export interface Cart {
 	shipping_total: number;
 	discount_total: number;
 	item_total: number;
+	shipping_address: {
+		first_name: string;
+		last_name: string;
+		address_1: string;
+		city: string;
+		country_code: string;
+		postal_code: string;
+		phone: string | null;
+	} | null;
+	payment_collection: PaymentCollection | null;
+	shipping_methods: { shipping_option_id: string }[];
 }
 
 export interface LineItem {
@@ -239,6 +251,35 @@ export async function removeLineItem(
 
 // --- Checkout ---
 
+export interface ShippingOption {
+	id: string;
+	name: string;
+	amount: number;
+	provider_id: string;
+}
+
+export interface PaymentCollection {
+	id: string;
+	payment_sessions: PaymentSession[];
+}
+
+export interface PaymentSession {
+	id: string;
+	provider_id: string;
+	status: string;
+	data: Record<string, unknown>;
+}
+
+export async function updateCart(
+	cartId: string,
+	data: { email?: string; shipping_address?: Record<string, string>; billing_address?: Record<string, string> }
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}`, {
+		method: 'POST',
+		body: JSON.stringify(data)
+	});
+}
+
 export async function addShippingAddress(
 	cartId: string,
 	address: {
@@ -255,6 +296,47 @@ export async function addShippingAddress(
 		method: 'POST',
 		body: JSON.stringify({ shipping_address: address })
 	});
+}
+
+export async function getShippingOptions(cartId: string): Promise<{ shipping_options: ShippingOption[] }> {
+	return medusaRequest<{ shipping_options: ShippingOption[] }>(
+		`/shipping-options?cart_id=${cartId}`
+	);
+}
+
+export async function addShippingMethod(
+	cartId: string,
+	shippingOptionId: string
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}/shipping-methods`, {
+		method: 'POST',
+		body: JSON.stringify({ option_id: shippingOptionId })
+	});
+}
+
+export async function initPaymentSessions(
+	cartId: string
+): Promise<{ payment_collection: PaymentCollection }> {
+	return medusaRequest<{ payment_collection: PaymentCollection }>(
+		`/payment-collections`,
+		{
+			method: 'POST',
+			body: JSON.stringify({ cart_id: cartId })
+		}
+	);
+}
+
+export async function initiatePaymentSession(
+	paymentCollectionId: string,
+	providerId: string
+): Promise<{ payment_session: PaymentSession }> {
+	return medusaRequest<{ payment_session: PaymentSession }>(
+		`/payment-collections/${paymentCollectionId}/payment-sessions`,
+		{
+			method: 'POST',
+			body: JSON.stringify({ provider_id: providerId })
+		}
+	);
 }
 
 export async function setPaymentSession(
