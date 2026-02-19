@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ProductGrid from '$components/shop/ProductGrid.svelte';
-	import { scrollRevealGrid } from '$utils/animations';
+	import { fadeInUp, staggerChildren } from '$utils/animations';
 
 	interface Props {
 		data: {
@@ -10,17 +10,15 @@
 	}
 
 	let { data }: Props = $props();
-	let productGridEl: HTMLElement | undefined = $state();
+	let heroEl: HTMLElement | undefined = $state();
+	let collectionsEl: HTMLElement | undefined = $state();
 
 	$effect(() => {
-		if (!productGridEl) return;
-		let cleanup: (() => void) | undefined;
+		if (heroEl) fadeInUp(heroEl);
+	});
 
-		scrollRevealGrid(productGridEl).then((fn) => {
-			cleanup = fn;
-		});
-
-		return () => cleanup?.();
+	$effect(() => {
+		if (collectionsEl) staggerChildren(collectionsEl, 'a', 0.1);
 	});
 </script>
 
@@ -32,7 +30,7 @@
 <!-- Hero -->
 <section class="bg-neutral-50">
 	<div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
-		<div class="text-center">
+		<div bind:this={heroEl} class="text-center">
 			<h1 class="font-heading text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">
 				Quality products,<br />curated for you.
 			</h1>
@@ -66,9 +64,7 @@
 				View all &rarr;
 			</a>
 		</div>
-		<div bind:this={productGridEl}>
-			<ProductGrid products={data.products} />
-		</div>
+		<ProductGrid products={data.products} />
 	</section>
 {/if}
 
@@ -77,7 +73,7 @@
 	<section class="bg-neutral-50">
 		<div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
 			<h2 class="mb-8 font-heading text-2xl font-bold text-neutral-900">Collections</h2>
-			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+			<div bind:this={collectionsEl} class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				{#each data.collections as collection (collection.id)}
 					<a
 						href="/collections/{collection.handle}"

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ProductGrid from '$components/shop/ProductGrid.svelte';
+	import { fadeInUp } from '$utils/animations';
 
 	interface Props {
 		data: {
@@ -12,6 +13,11 @@
 	}
 
 	let { data }: Props = $props();
+	let headingEl: HTMLElement | undefined = $state();
+
+	$effect(() => {
+		if (headingEl) fadeInUp(headingEl);
+	});
 </script>
 
 <svelte:head>
@@ -19,7 +25,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-	<h1 class="mb-8 font-heading text-3xl font-bold text-neutral-900">{data.collection.title}</h1>
+	<h1 bind:this={headingEl} class="mb-8 font-heading text-3xl font-bold text-neutral-900">{data.collection.title}</h1>
 
 	<ProductGrid products={data.products} />
 

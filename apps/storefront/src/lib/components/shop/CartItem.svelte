@@ -2,6 +2,7 @@
 	import QuantitySelector from './QuantitySelector.svelte';
 	import PriceDisplay from './PriceDisplay.svelte';
 	import { updateCartItem, removeCartItem } from '$stores/cart';
+	import { cartFlyIn } from '$utils/animations';
 	import type { LineItem } from '$server/medusa';
 
 	interface Props {
@@ -11,6 +12,11 @@
 
 	let { item, currencyCode }: Props = $props();
 	let updating = $state(false);
+	let rowEl: HTMLElement | undefined = $state();
+
+	$effect(() => {
+		if (rowEl) cartFlyIn(rowEl);
+	});
 
 	async function handleQuantityChange(quantity: number) {
 		updating = true;
@@ -31,7 +37,7 @@
 	}
 </script>
 
-<div class="flex gap-4 py-4" class:opacity-50={updating}>
+<div bind:this={rowEl} class="flex gap-4 py-4" class:opacity-50={updating}>
 	<!-- Thumbnail -->
 	<div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-neutral-100">
 		{#if item.thumbnail}

@@ -2,6 +2,7 @@
 	import PriceDisplay from '$components/shop/PriceDisplay.svelte';
 	import QuantitySelector from '$components/shop/QuantitySelector.svelte';
 	import { addToCartOptimistic } from '$stores/cart';
+	import { fadeInUp } from '$utils/animations';
 	import type { Product } from '$server/medusa';
 
 	interface Props {
@@ -13,6 +14,11 @@
 	let selectedVariantIndex = $state(0);
 	let quantity = $state(1);
 	let adding = $state(false);
+	let pageEl: HTMLElement | undefined = $state();
+
+	$effect(() => {
+		if (pageEl) fadeInUp(pageEl);
+	});
 
 	const selectedVariant = $derived(product.variants[selectedVariantIndex]);
 	const price = $derived(
@@ -44,7 +50,7 @@
 	{/if}
 </svelte:head>
 
-<div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+<div bind:this={pageEl} class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 	<div class="grid gap-12 lg:grid-cols-2">
 		<!-- Images -->
 		<div class="space-y-4">

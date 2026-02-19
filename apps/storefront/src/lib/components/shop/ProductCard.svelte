@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PriceDisplay from './PriceDisplay.svelte';
+	import { imageHoverZoom } from '$utils/animations';
 	import type { Product } from '$server/medusa';
 
 	interface Props {
@@ -7,6 +8,14 @@
 	}
 
 	let { product }: Props = $props();
+
+	let containerEl: HTMLElement | undefined = $state();
+	let imgEl: HTMLElement | undefined = $state();
+
+	$effect(() => {
+		if (!containerEl || !imgEl) return;
+		return imageHoverZoom(containerEl, imgEl);
+	});
 
 	const price = $derived(
 		product.variants?.[0]?.calculated_price?.calculated_amount ??
@@ -25,14 +34,16 @@
 	href="/products/{product.handle}"
 	class="group block overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg"
 	data-product-card
+	bind:this={containerEl}
 >
 	<!-- Image -->
 	<div class="aspect-square overflow-hidden bg-neutral-100">
 		{#if product.thumbnail}
 			<img
+				bind:this={imgEl}
 				src={product.thumbnail}
 				alt={product.title}
-				class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+				class="h-full w-full object-cover"
 				loading="lazy"
 			/>
 		{:else}

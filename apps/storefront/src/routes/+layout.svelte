@@ -9,6 +9,7 @@
 	import SearchOverlay from '$components/shop/SearchOverlay.svelte';
 	import { Toaster } from '$ui/sonner';
 	import { cart } from '$stores/cart';
+	import { navigating } from '$app/stores';
 	import type { Snippet } from 'svelte';
 	import type { AuthUser } from '$server/auth';
 
@@ -38,6 +39,13 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
+<!-- Navigation loading bar -->
+{#if $navigating}
+	<div class="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-primary-100">
+		<div class="h-full w-full animate-loading-bar bg-primary-600"></div>
+	</div>
+{/if}
+
 <div class="flex min-h-screen flex-col">
 	<Header
 		user={data.user}
@@ -61,3 +69,14 @@
 	onclose={() => searchOpen = false}
 />
 <Toaster richColors position="bottom-right" />
+
+<style>
+	@keyframes loading-bar {
+		0% { transform: translateX(-100%); }
+		50% { transform: translateX(0%); }
+		100% { transform: translateX(100%); }
+	}
+	:global(.animate-loading-bar) {
+		animation: loading-bar 1.2s ease-in-out infinite;
+	}
+</style>

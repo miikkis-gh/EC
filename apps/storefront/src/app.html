@@ -4,6 +4,23 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<style>
+			@view-transition {
+				navigation: auto;
+			}
+			::view-transition-old(root) {
+				animation: vt-fade-out 0.15s ease;
+			}
+			::view-transition-new(root) {
+				animation: vt-fade-in 0.15s ease;
+			}
+			@keyframes vt-fade-out {
+				to { opacity: 0; }
+			}
+			@keyframes vt-fade-in {
+				from { opacity: 0; }
+			}
+		</style>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
