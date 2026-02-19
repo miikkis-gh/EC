@@ -8,6 +8,7 @@ import {
 	createSession,
 	setSessionTokenCookie
 } from '$server/auth';
+import { registerSchema } from '$utils/validation';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
@@ -18,23 +19,26 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	default: async (event) => {
 		const formData = await event.request.formData();
-		const email = formData.get('email')?.toString().trim();
-		const password = formData.get('password')?.toString();
-		const firstName = formData.get('first_name')?.toString().trim() || '';
-		const lastName = formData.get('last_name')?.toString().trim() || '';
+		const raw = {
+			email: formData.get('email')?.toString().trim(),
+			password: formData.get('password')?.toString(),
+			first_name: formData.get('first_name')?.toString().trim() || undefined,
+			last_name: formData.get('last_name')?.toString().trim() || undefined
+		};
 
-		if (!email || !password) {
-			return fail(400, { error: 'Email and password are required', email, firstName, lastName });
-		}
-
-		if (password.length < 8) {
+		const parsed = registerSchema.safeParse(raw);
+		if (!parsed.success) {
 			return fail(400, {
-				error: 'Password must be at least 8 characters',
-				email,
-				firstName,
-				lastName
+				error: parsed.error.issues[0].message,
+				email: raw.email,
+				firstName: raw.first_name || '',
+				lastName: raw.last_name || ''
 			});
 		}
+
+		const { email, password } = parsed.data;
+		const firstName = parsed.data.first_name || '';
+		const lastName = parsed.data.last_name || '';
 
 		const existingUser = await getUserByEmail(email);
 		if (existingUser) {

@@ -8,6 +8,7 @@ import {
 	createSession,
 	setSessionTokenCookie
 } from '$server/auth';
+import { loginSchema } from '$utils/validation';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
@@ -18,12 +19,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	default: async (event) => {
 		const formData = await event.request.formData();
-		const email = formData.get('email')?.toString().trim();
-		const password = formData.get('password')?.toString();
+		const raw = {
+			email: formData.get('email')?.toString().trim(),
+			password: formData.get('password')?.toString()
+		};
 
-		if (!email || !password) {
-			return fail(400, { error: 'Email and password are required', email });
+		const parsed = loginSchema.safeParse(raw);
+		if (!parsed.success) {
+			return fail(400, { error: parsed.error.issues[0].message, email: raw.email });
 		}
+
+		const { email, password } = parsed.data;
 
 		const user = await getUserByEmail(email);
 		if (!user) {

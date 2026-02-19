@@ -10,6 +10,8 @@
 	import { Toaster } from '$ui/sonner';
 	import { cart } from '$stores/cart';
 	import { navigating } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import type { Snippet } from 'svelte';
 	import type { AuthUser } from '$server/auth';
 
@@ -26,6 +28,13 @@
 	$effect(() => {
 		if (data.cart) {
 			cart.set(data.cart);
+		}
+	});
+
+	// Initialize web vitals reporting
+	onMount(() => {
+		if (browser) {
+			import('$utils/web-vitals').then(({ reportWebVitals }) => reportWebVitals());
 		}
 	});
 

@@ -1,14 +1,17 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { createCart, addToCart, getCart } from '$server/medusa';
+import { addToCartSchema } from '$utils/validation';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-	const { variantId, quantity = 1 } = await request.json();
+	const body = await request.json();
+	const result = addToCartSchema.safeParse(body);
 
-	if (!variantId) {
-		return json({ error: 'variantId is required' }, { status: 400 });
+	if (!result.success) {
+		return json({ error: result.error.issues[0].message }, { status: 400 });
 	}
 
+	const { variantId, quantity } = result.data;
 	let cartId = cookies.get('cart_id');
 
 	// Create cart if none exists
