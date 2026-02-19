@@ -25,6 +25,9 @@ importers:
       '@medusajs/medusa':
         specifier: 2.13.1
         version: 2.13.1(@medusajs/admin-sdk@2.13.1)(@medusajs/cli@2.13.1(@types/node@20.19.33))(@medusajs/framework@2.13.1(@medusajs/cli@2.13.1(@types/node@20.19.33))(@types/node@20.19.33)(ioredis@5.9.3)(vite@5.4.21(@types/node@20.19.33)(lightningcss@1.31.1))(zod@3.25.76))(@medusajs/icons@2.13.1(react@18.3.1))(@medusajs/test-utils@2.13.1)(@medusajs/ui@4.1.1(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3))(@swc/core@1.15.11(@swc/helpers@0.5.18))(@types/node@20.19.33)(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(awilix@8.0.1)(lightningcss@1.31.1)(posthog-node@5.24.17)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.30.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(typescript@5.9.3)(yalc@1.0.0-pre.53)
+      meilisearch:
+        specifier: ^0.55.0
+        version: 0.55.0
     devDependencies:
       '@medusajs/test-utils':
         specifier: 2.13.1
@@ -80,6 +83,9 @@ importers:
       '@fontsource-variable/plus-jakarta-sans':
         specifier: ^5.1.1
         version: 5.2.8
+      meilisearch:
+        specifier: ^0.55.0
+        version: 0.55.0
     devDependencies:
       '@sveltejs/adapter-node':
         specifier: ^5.2.0
@@ -5997,6 +6003,9 @@ packages:
   media-typer@0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
+
+  meilisearch@0.55.0:
+    resolution: {integrity: sha512-qSMeiezfDgIqciIeYzh5E4pXDZZD7CtHeWDCs43kN3trLgl5FtfmBAIkljL3huFaOx08feYtC8FfIFUpVwq6rg==}
 
   merge-descriptors@1.0.3:
     resolution: {integrity: sha512-gaNvAS7TZ897/rVaZ0nMtAyxNyi/pdbjbAwUpFQpN70GqnVfOiXpeUUMKRBmzXaSQ8DdTX4/0ms62r2K+hE6mQ==}
@@ -15130,6 +15139,8 @@ snapshots:
   meant@1.0.3: {}
 
   media-typer@0.3.0: {}
+
+  meilisearch@0.55.0: {}
 
   merge-descriptors@1.0.3: {}
 

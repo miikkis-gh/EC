@@ -25,7 +25,16 @@
 			cart.set(data.cart);
 		}
 	});
+
+	function handleKeydown(e: KeyboardEvent) {
+		if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+			e.preventDefault();
+			searchOpen = !searchOpen;
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="flex min-h-screen flex-col">
 	<Header

@@ -19,7 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			"style-src 'self' 'unsafe-inline'",
 			"img-src 'self' data: https://res.cloudinary.com https://*.cloudinary.com",
 			"font-src 'self'",
-			"connect-src 'self' http://localhost:9000",
+			"connect-src 'self' http://localhost:9000 http://localhost:7700",
 			"frame-ancestors 'none'"
 		].join('; ')
 	);
