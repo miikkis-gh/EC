@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+@theme {
+	/* Colors */
+	--color-primary-50: oklch(0.97 0.01 250);
+	--color-primary-100: oklch(0.93 0.02 250);
+	--color-primary-200: oklch(0.87 0.04 250);
+	--color-primary-300: oklch(0.78 0.07 250);
+	--color-primary-400: oklch(0.68 0.1 250);
+	--color-primary-500: oklch(0.55 0.15 250);
+	--color-primary-600: oklch(0.47 0.17 250);
+	--color-primary-700: oklch(0.4 0.15 250);
+	--color-primary-800: oklch(0.35 0.12 250);
+	--color-primary-900: oklch(0.3 0.1 250);
+	--color-primary-950: oklch(0.22 0.07 250);
+
+	--color-neutral-50: oklch(0.98 0.005 250);
+	--color-neutral-100: oklch(0.96 0.005 250);
+	--color-neutral-200: oklch(0.92 0.005 250);
+	--color-neutral-300: oklch(0.87 0.005 250);
+	--color-neutral-400: oklch(0.7 0.005 250);
+	--color-neutral-500: oklch(0.55 0.005 250);
+	--color-neutral-600: oklch(0.45 0.005 250);
+	--color-neutral-700: oklch(0.37 0.005 250);
+	--color-neutral-800: oklch(0.27 0.005 250);
+	--color-neutral-900: oklch(0.2 0.005 250);
+	--color-neutral-950: oklch(0.14 0.005 250);
+
+	/* Fonts */
+	--font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+	--font-heading: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', var(--font-sans);
+}
+
+/* Base styles */
+body {
+	font-family: var(--font-sans);
+	color: var(--color-neutral-900);
+	background-color: white;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* View transitions */
+@view-transition {
+	navigation: auto;
+}

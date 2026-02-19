@@ -1,6 +1,15 @@
 {
   "name": "my-store",
   "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@medusajs/telemetry",
+      "@swc/core",
+      "esbuild",
+      "msgpackr-extract",
+      "protobufjs"
+    ]
+  },
   "scripts": {
     "dev": "pnpm --filter './apps/**' run dev",
     "dev:backend": "pnpm --filter backend run dev",

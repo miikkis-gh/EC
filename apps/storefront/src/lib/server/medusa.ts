@@ -1,0 +1,282 @@
+import { env } from '$env/dynamic/private';
+
+const BACKEND_URL = env.MEDUSA_BACKEND_URL || 'http://localhost:9000';
+
+// --- Types ---
+
+export interface Product {
+	id: string;
+	title: string;
+	handle: string;
+	description: string | null;
+	thumbnail: string | null;
+	images: { id: string; url: string }[];
+	variants: ProductVariant[];
+	options: ProductOption[];
+	collection_id: string | null;
+	collection: Collection | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface ProductVariant {
+	id: string;
+	title: string;
+	sku: string | null;
+	prices: Price[];
+	options: { id: string; value: string; option_id: string }[];
+	inventory_quantity: number;
+	manage_inventory: boolean;
+	calculated_price?: {
+		calculated_amount: number;
+		currency_code: string;
+	};
+}
+
+export interface ProductOption {
+	id: string;
+	title: string;
+	values: { id: string; value: string }[];
+}
+
+export interface Price {
+	id: string;
+	amount: number;
+	currency_code: string;
+}
+
+export interface Collection {
+	id: string;
+	title: string;
+	handle: string;
+	metadata: Record<string, unknown> | null;
+}
+
+export interface Cart {
+	id: string;
+	items: LineItem[];
+	region_id: string;
+	currency_code: string;
+	total: number;
+	subtotal: number;
+	tax_total: number;
+	shipping_total: number;
+	discount_total: number;
+	item_total: number;
+}
+
+export interface LineItem {
+	id: string;
+	title: string;
+	description: string | null;
+	thumbnail: string | null;
+	quantity: number;
+	unit_price: number;
+	total: number;
+	variant_id: string;
+	product_id: string;
+	variant: ProductVariant;
+}
+
+export interface Customer {
+	id: string;
+	email: string;
+	first_name: string | null;
+	last_name: string | null;
+	phone: string | null;
+	created_at: string;
+}
+
+export interface PaginatedResponse<T> {
+	count: number;
+	offset: number;
+	limit: number;
+	[key: string]: T[] | number;
+}
+
+// --- Generic Fetcher ---
+
+interface MedusaError {
+	message: string;
+	type: string;
+}
+
+export async function medusaRequest<T>(
+	path: string,
+	options: RequestInit = {},
+	cartId?: string
+): Promise<T> {
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+		'x-publishable-api-key': env.MEDUSA_PUBLISHABLE_KEY || '',
+		...(options.headers as Record<string, string>)
+	};
+
+	if (cartId) {
+		headers['x-cart-id'] = cartId;
+	}
+
+	const response = await fetch(`${BACKEND_URL}/store${path}`, {
+		...options,
+		headers
+	});
+
+	if (!response.ok) {
+		const error: MedusaError = await response.json().catch(() => ({
+			message: `Request failed with status ${response.status}`,
+			type: 'unknown_error'
+		}));
+		throw new Error(error.message);
+	}
+
+	return response.json();
+}
+
+// --- Products ---
+
+export async function getProducts(params?: {
+	limit?: number;
+	offset?: number;
+	collection_id?: string[];
+	order?: string;
+}): Promise<{ products: Product[]; count: number; offset: number; limit: number }> {
+	const searchParams = new URLSearchParams();
+	if (params?.limit) searchParams.set('limit', String(params.limit));
+	if (params?.offset) searchParams.set('offset', String(params.offset));
+	if (params?.order) searchParams.set('order', params.order);
+	if (params?.collection_id) {
+		params.collection_id.forEach((id) => searchParams.append('collection_id[]', id));
+	}
+	searchParams.set('fields', '+variants.calculated_price');
+
+	const query = searchParams.toString();
+	return medusaRequest<{ products: Product[]; count: number; offset: number; limit: number }>(
+		`/products${query ? `?${query}` : ''}`
+	);
+}
+
+export async function getProductByHandle(
+	handle: string
+): Promise<{ products: Product[] }> {
+	return medusaRequest<{ products: Product[] }>(
+		`/products?handle=${encodeURIComponent(handle)}&fields=+variants.calculated_price`
+	);
+}
+
+// --- Collections ---
+
+export async function getCollections(params?: {
+	limit?: number;
+	offset?: number;
+}): Promise<{ collections: Collection[]; count: number; offset: number; limit: number }> {
+	const searchParams = new URLSearchParams();
+	if (params?.limit) searchParams.set('limit', String(params.limit));
+	if (params?.offset) searchParams.set('offset', String(params.offset));
+
+	const query = searchParams.toString();
+	return medusaRequest<{
+		collections: Collection[];
+		count: number;
+		offset: number;
+		limit: number;
+	}>(`/collections${query ? `?${query}` : ''}`);
+}
+
+export async function getCollectionByHandle(
+	handle: string
+): Promise<{ collections: Collection[] }> {
+	return medusaRequest<{ collections: Collection[] }>(
+		`/collections?handle=${encodeURIComponent(handle)}`
+	);
+}
+
+// --- Cart ---
+
+export async function createCart(): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>('/carts', {
+		method: 'POST',
+		body: JSON.stringify({})
+	});
+}
+
+export async function getCart(cartId: string): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}`);
+}
+
+export async function addToCart(
+	cartId: string,
+	variantId: string,
+	quantity: number = 1
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}/line-items`, {
+		method: 'POST',
+		body: JSON.stringify({
+			variant_id: variantId,
+			quantity
+		})
+	});
+}
+
+export async function updateLineItem(
+	cartId: string,
+	lineItemId: string,
+	quantity: number
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}/line-items/${lineItemId}`, {
+		method: 'POST',
+		body: JSON.stringify({ quantity })
+	});
+}
+
+export async function removeLineItem(
+	cartId: string,
+	lineItemId: string
+): Promise<void> {
+	await medusaRequest(`/carts/${cartId}/line-items/${lineItemId}`, {
+		method: 'DELETE'
+	});
+}
+
+// --- Checkout ---
+
+export async function addShippingAddress(
+	cartId: string,
+	address: {
+		first_name: string;
+		last_name: string;
+		address_1: string;
+		city: string;
+		country_code: string;
+		postal_code: string;
+		phone?: string;
+	}
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}`, {
+		method: 'POST',
+		body: JSON.stringify({ shipping_address: address })
+	});
+}
+
+export async function setPaymentSession(
+	cartId: string,
+	providerId: string
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}/payment-sessions`, {
+		method: 'POST',
+		body: JSON.stringify({ provider_id: providerId })
+	});
+}
+
+export async function completeCart(cartId: string): Promise<{ type: string; data: unknown }> {
+	return medusaRequest<{ type: string; data: unknown }>(`/carts/${cartId}/complete`, {
+		method: 'POST'
+	});
+}
+
+// --- Customer ---
+
+export async function getCustomer(token: string): Promise<{ customer: Customer }> {
+	return medusaRequest<{ customer: Customer }>('/customers/me', {
+		headers: { Authorization: `Bearer ${token}` }
+	});
+}
