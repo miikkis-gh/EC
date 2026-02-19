@@ -10,9 +10,10 @@
 	import { Toaster } from '$ui/sonner';
 	import { cart } from '$stores/cart';
 	import type { Snippet } from 'svelte';
+	import type { AuthUser } from '$server/auth';
 
 	interface Props {
-		data: { cart: import('$server/medusa').Cart | null };
+		data: { cart: import('$server/medusa').Cart | null; user: AuthUser | null };
 		children: Snippet;
 	}
 
@@ -39,10 +40,12 @@
 
 <div class="flex min-h-screen flex-col">
 	<Header
+		user={data.user}
 		onToggleMobileMenu={() => mobileMenuOpen = !mobileMenuOpen}
 		onToggleSearch={() => searchOpen = !searchOpen}
 	/>
 	<MobileMenu
+		user={data.user}
 		open={mobileMenuOpen}
 		onclose={() => mobileMenuOpen = false}
 	/>

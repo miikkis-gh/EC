@@ -280,3 +280,52 @@ export async function getCustomer(token: string): Promise<{ customer: Customer }
 		headers: { Authorization: `Bearer ${token}` }
 	});
 }
+
+// --- Auth ---
+
+export async function loginMedusa(
+	email: string,
+	password: string
+): Promise<{ token: string }> {
+	const response = await fetch(`${BACKEND_URL}/auth/customer/emailpass`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ email, password })
+	});
+
+	if (!response.ok) {
+		const err = await response.json().catch(() => ({ message: 'Login failed' }));
+		throw new Error(err.message || 'Login failed');
+	}
+
+	return response.json();
+}
+
+export async function registerMedusaAuth(
+	email: string,
+	password: string
+): Promise<{ token: string }> {
+	const response = await fetch(`${BACKEND_URL}/auth/customer/emailpass/register`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ email, password })
+	});
+
+	if (!response.ok) {
+		const err = await response.json().catch(() => ({ message: 'Registration failed' }));
+		throw new Error(err.message || 'Registration failed');
+	}
+
+	return response.json();
+}
+
+export async function createMedusaCustomer(
+	token: string,
+	data: { email: string; first_name?: string; last_name?: string }
+): Promise<{ customer: Customer }> {
+	return medusaRequest<{ customer: Customer }>('/customers', {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${token}` },
+		body: JSON.stringify(data)
+	});
+}

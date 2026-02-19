@@ -1,12 +1,14 @@
 <script lang="ts">
 	import * as Sheet from '$ui/sheet';
+	import type { AuthUser } from '$server/auth';
 
 	interface Props {
+		user: AuthUser | null;
 		open: boolean;
 		onclose: () => void;
 	}
 
-	let { open = $bindable(), onclose }: Props = $props();
+	let { user, open = $bindable(), onclose }: Props = $props();
 
 	function onOpenChange(value: boolean) {
 		if (!value) onclose();
@@ -40,14 +42,36 @@
 					</a>
 				</li>
 				<li class="border-t border-neutral-100 pt-2">
-					<a
-						href="/account"
-						onclick={onclose}
-						class="block rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
-					>
-						My Account
-					</a>
+					{#if user}
+						<a
+							href="/account"
+							onclick={onclose}
+							class="block rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+						>
+							My Account
+						</a>
+					{:else}
+						<a
+							href="/login"
+							onclick={onclose}
+							class="block rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+						>
+							Sign in
+						</a>
+					{/if}
 				</li>
+				{#if user}
+					<li>
+						<form method="POST" action="/api/auth/logout">
+							<button
+								type="submit"
+								class="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+							>
+								Sign out
+							</button>
+						</form>
+					</li>
+				{/if}
 				<li>
 					<a
 						href="/cart"

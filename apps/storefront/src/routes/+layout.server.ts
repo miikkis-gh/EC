@@ -1,18 +1,21 @@
 import type { LayoutServerLoad } from './$types';
 import { getCart } from '$server/medusa';
 
-export const load: LayoutServerLoad = async ({ cookies }) => {
+export const load: LayoutServerLoad = async ({ cookies, locals }) => {
 	const cartId = cookies.get('cart_id');
+	let cart = null;
 
 	if (cartId) {
 		try {
-			const { cart } = await getCart(cartId);
-			return { cart };
+			const result = await getCart(cartId);
+			cart = result.cart;
 		} catch {
-			// Cart may have expired or been completed
 			cookies.delete('cart_id', { path: '/' });
 		}
 	}
 
-	return { cart: null };
+	return {
+		cart,
+		user: locals.user
+	};
 };

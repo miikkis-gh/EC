@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { cartCount, openCart } from '$stores/cart';
+	import type { AuthUser } from '$server/auth';
 
 	interface Props {
+		user: AuthUser | null;
 		onToggleMobileMenu: () => void;
 		onToggleSearch: () => void;
 	}
 
-	let { onToggleMobileMenu, onToggleSearch }: Props = $props();
+	let { user, onToggleMobileMenu, onToggleSearch }: Props = $props();
 </script>
 
 <header class="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur-lg">
@@ -44,6 +46,17 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
 				</svg>
 			</button>
+
+			<!-- User -->
+			<a
+				href={user ? '/account' : '/login'}
+				class="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+				aria-label={user ? 'My account' : 'Sign in'}
+			>
+				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+				</svg>
+			</a>
 
 			<!-- Cart -->
 			<button
