@@ -1,15 +1,22 @@
-import { MeiliSearch } from "meilisearch"
-
 export const PRODUCTS_INDEX = "products"
 
-const client = new MeiliSearch({
-  host: process.env.MEILISEARCH_HOST || "http://localhost:7700",
-  apiKey: process.env.MEILISEARCH_API_KEY || "",
-})
+let _client: any | null = null
 
-export default client
+async function getClient() {
+  if (!_client) {
+    const { MeiliSearch } = await import("meilisearch")
+    _client = new MeiliSearch({
+      host: process.env.MEILISEARCH_HOST || "http://localhost:7700",
+      apiKey: process.env.MEILISEARCH_API_KEY || "",
+    })
+  }
+  return _client
+}
+
+export default getClient
 
 export async function ensureProductsIndex() {
+  const client = await getClient()
   try {
     await client.getIndex(PRODUCTS_INDEX)
   } catch {

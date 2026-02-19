@@ -1,6 +1,6 @@
 import { ExecArgs } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
-import client, {
+import getClient, {
   PRODUCTS_INDEX,
   ensureProductsIndex,
   productToDocument,
@@ -12,6 +12,7 @@ export default async function syncSearch({ container }: ExecArgs) {
   await ensureProductsIndex()
   console.log("[sync-search] Index configured")
 
+  const client = await getClient()
   const productService = container.resolve(Modules.PRODUCT)
 
   const BATCH_SIZE = 100

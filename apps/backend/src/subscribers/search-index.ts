@@ -1,11 +1,12 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import client, { PRODUCTS_INDEX, productToDocument } from "../lib/meilisearch"
+import getClient, { PRODUCTS_INDEX, productToDocument } from "../lib/meilisearch"
 
 export default async function searchIndexHandler({
   event: { name, data },
   container,
 }: SubscriberArgs<{ id: string }>) {
   const productId = data.id
+  const client = await getClient()
   const index = client.index(PRODUCTS_INDEX)
 
   if (name === "product.deleted") {
