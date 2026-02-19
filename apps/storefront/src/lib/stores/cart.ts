@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { toast } from 'svelte-sonner';
 import type { Cart } from '$server/medusa';
 
 export const cart = writable<Cart | null>(null);
@@ -33,8 +34,10 @@ export async function addToCartOptimistic(variantId: string, quantity: number = 
 		const data = await response.json();
 		cart.set(data.cart);
 		openCart();
+		toast.success('Added to cart');
 	} catch (error) {
 		console.error('Failed to add to cart:', error);
+		toast.error('Could not add item');
 		throw error;
 	}
 }
@@ -53,8 +56,10 @@ export async function updateCartItem(lineItemId: string, quantity: number) {
 
 		const data = await response.json();
 		cart.set(data.cart);
+		toast.success('Cart updated');
 	} catch (error) {
 		console.error('Failed to update cart:', error);
+		toast.error('Could not update item');
 		throw error;
 	}
 }
@@ -73,8 +78,10 @@ export async function removeCartItem(lineItemId: string) {
 
 		const data = await response.json();
 		cart.set(data.cart);
+		toast.success('Item removed');
 	} catch (error) {
 		console.error('Failed to remove from cart:', error);
+		toast.error('Could not remove item');
 		throw error;
 	}
 }

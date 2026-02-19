@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ProductGrid from '$components/shop/ProductGrid.svelte';
+	import { scrollRevealGrid } from '$utils/animations';
 
 	interface Props {
 		data: {
@@ -9,6 +10,18 @@
 	}
 
 	let { data }: Props = $props();
+	let productGridEl: HTMLElement | undefined = $state();
+
+	$effect(() => {
+		if (!productGridEl) return;
+		let cleanup: (() => void) | undefined;
+
+		scrollRevealGrid(productGridEl).then((fn) => {
+			cleanup = fn;
+		});
+
+		return () => cleanup?.();
+	});
 </script>
 
 <svelte:head>
@@ -53,7 +66,9 @@
 				View all &rarr;
 			</a>
 		</div>
-		<ProductGrid products={data.products} />
+		<div bind:this={productGridEl}>
+			<ProductGrid products={data.products} />
+		</div>
 	</section>
 {/if}
 

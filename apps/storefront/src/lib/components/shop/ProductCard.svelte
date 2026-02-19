@@ -24,6 +24,7 @@
 <a
 	href="/products/{product.handle}"
 	class="group block overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg"
+	data-product-card
 >
 	<!-- Image -->
 	<div class="aspect-square overflow-hidden bg-neutral-100">

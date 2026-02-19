@@ -7,6 +7,7 @@
 	import MobileMenu from '$components/layout/MobileMenu.svelte';
 	import CartDrawer from '$components/shop/CartDrawer.svelte';
 	import SearchOverlay from '$components/shop/SearchOverlay.svelte';
+	import { Toaster } from '$ui/sonner';
 	import { cart } from '$stores/cart';
 	import type { Snippet } from 'svelte';
 
@@ -56,3 +57,4 @@
 	open={searchOpen}
 	onclose={() => searchOpen = false}
 />
+<Toaster richColors position="bottom-right" />
