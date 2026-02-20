@@ -9,6 +9,9 @@ import {
 	setSessionTokenCookie
 } from '$server/auth';
 import { loginSchema } from '$utils/validation';
+import { createLogger } from '$server/logger';
+
+const logger = createLogger('login');
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
@@ -33,11 +36,13 @@ export const actions: Actions = {
 
 		const user = await getUserByEmail(email);
 		if (!user) {
+			logger.warn('Login failed: user not found', { email });
 			return fail(400, { error: 'Invalid email or password', email });
 		}
 
 		const validPassword = await verifyPasswordHash(user.passwordHash, password);
 		if (!validPassword) {
+			logger.warn('Login failed: password mismatch', { email, userId: user.id });
 			return fail(400, { error: 'Invalid email or password', email });
 		}
 
