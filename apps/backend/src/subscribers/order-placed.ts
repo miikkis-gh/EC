@@ -1,6 +1,9 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { sendEmail } from "../lib/email"
 import { orderConfirmationEmail } from "../lib/templates/order-confirmation"
+import { createLogger } from "../lib/logger"
+
+const log = createLogger("order-placed")
 
 interface OrderItem {
   title: string
@@ -28,7 +31,7 @@ export default async function orderPlacedHandler({
     })
 
     if (!order.email) {
-      console.warn(`[order-placed] Order ${orderId} has no email, skipping`)
+      log.warn("Order has no email, skipping", { orderId })
       return
     }
 
@@ -57,20 +60,20 @@ export default async function orderPlacedHandler({
           subject: `Order #${displayId} confirmed`,
           html,
         })
-        console.log(`[order-placed] Confirmation email sent to ${order.email}`)
+        log.info("Confirmation email sent", { orderId, email: order.email })
         return
       } catch (error) {
         lastError = error
         if (attempt < MAX_RETRIES) {
-          console.warn(`[order-placed] Email attempt ${attempt + 1} failed for order ${orderId}, retrying...`)
+          log.warn(`Email attempt ${attempt + 1} failed, retrying`, { orderId })
           await delay(RETRY_DELAY_MS * (attempt + 1))
         }
       }
     }
 
-    console.error(`[order-placed] Failed to send email for order ${orderId} after ${MAX_RETRIES + 1} attempts:`, lastError)
+    log.error(`Failed to send email after ${MAX_RETRIES + 1} attempts`, lastError, { orderId })
   } catch (error) {
-    console.error(`[order-placed] Failed to process order ${orderId}:`, error)
+    log.error("Failed to process order", error, { orderId })
   }
 }
 

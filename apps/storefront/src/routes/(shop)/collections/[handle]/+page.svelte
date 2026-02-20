@@ -34,7 +34,16 @@
 
 	<h1 bind:this={headingEl} class="mb-8 font-heading text-3xl font-bold text-neutral-900">{data.collection.title}</h1>
 
-	<ProductGrid products={data.products} />
+	{#if data.products.length === 0}
+		<div class="py-16 text-center">
+			<p class="text-sm text-neutral-500">No products in this collection yet.</p>
+			<a href="/products" class="mt-4 inline-block text-sm font-medium text-primary-600 hover:text-primary-700">
+				Browse all products
+			</a>
+		</div>
+	{:else}
+		<ProductGrid products={data.products} />
+	{/if}
 
 	{#if data.pageCount > 1}
 		<nav class="mt-12 flex items-center justify-center gap-2" aria-label="Pagination">

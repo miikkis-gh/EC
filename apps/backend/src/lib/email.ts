@@ -1,4 +1,7 @@
 import { Resend } from "resend"
+import { createLogger } from "./logger"
+
+const log = createLogger("email")
 
 if (!process.env.RESEND_API_KEY) {
   throw new Error("Missing required environment variable: RESEND_API_KEY")
@@ -27,7 +30,7 @@ export async function sendEmail({
   })
 
   if (error) {
-    console.error("[email] Send error:", error)
+    log.error("Send failed", error, { to, subject })
     throw error
   }
 

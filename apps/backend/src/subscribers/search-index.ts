@@ -1,5 +1,8 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import getClient, { PRODUCTS_INDEX, productToDocument } from "../lib/meilisearch"
+import { createLogger } from "../lib/logger"
+
+const log = createLogger("search-index")
 
 export default async function searchIndexHandler({
   event: { name, data },
@@ -13,7 +16,7 @@ export default async function searchIndexHandler({
     try {
       await index.deleteDocument(productId)
     } catch (error) {
-      console.error(`[search-index] Failed to delete product ${productId}:`, error)
+      log.error("Failed to delete product from index", error, { productId })
     }
     return
   }
@@ -28,7 +31,7 @@ export default async function searchIndexHandler({
     const document = productToDocument(product)
     await index.addDocuments([document])
   } catch (error) {
-    console.error(`[search-index] Failed to index product ${productId}:`, error)
+    log.error("Failed to index product", error, { productId })
   }
 }
 

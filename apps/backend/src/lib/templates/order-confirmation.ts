@@ -43,6 +43,7 @@ export function orderConfirmationEmail(order: {
     .join("")
 
   const storeUrl = encodeURI(process.env.PUBLIC_STORE_URL || "http://localhost:5173")
+  const storeName = escapeHtml(process.env.STORE_NAME || "EC1 Store")
 
   return `
     <!DOCTYPE html>
@@ -89,7 +90,7 @@ export function orderConfirmationEmail(order: {
         </div>
 
         <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 24px;">
-          EC1 Store
+          ${storeName}
         </p>
       </div>
     </body>
