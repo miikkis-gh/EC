@@ -7,7 +7,8 @@ COPY apps/backend/ apps/backend/
 RUN pnpm install --frozen-lockfile --filter backend...
 RUN pnpm --filter backend run build
 RUN cp apps/backend/.medusa/server/medusa-config.js apps/backend/medusa-config.js && \
-    cp apps/backend/.medusa/server/instrumentation.js apps/backend/instrumentation.js 2>/dev/null || true
+    cp apps/backend/.medusa/server/instrumentation.js apps/backend/instrumentation.js 2>/dev/null || true && \
+    cp -r apps/backend/.medusa/server/public apps/backend/public
 RUN rm -rf apps/backend/src
 
 # Stage 2: Production
