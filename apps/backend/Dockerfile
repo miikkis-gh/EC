@@ -2,29 +2,21 @@
 FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
 WORKDIR /app
-# Copy workspace root files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# Copy backend package
 COPY apps/backend/ apps/backend/
-# Install dependencies
 RUN pnpm install --frozen-lockfile --filter backend...
-# Build
 RUN pnpm --filter backend run build
-# Compile config for production (TypeScript not available at runtime)
 RUN cp apps/backend/.medusa/server/medusa-config.js apps/backend/medusa-config.js && \
     cp apps/backend/.medusa/server/instrumentation.js apps/backend/instrumentation.js 2>/dev/null || true
+RUN rm -rf apps/backend/src
 
 # Stage 2: Production
 FROM node:20-alpine
 RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
 WORKDIR /app
-# Create non-root user
 RUN addgroup -S medusa && adduser -S medusa -G medusa
-# Copy workspace root files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# Copy built backend
 COPY --from=builder /app/apps/backend/ apps/backend/
-# Install production dependencies only
 RUN pnpm install --frozen-lockfile --filter backend... --prod
 RUN chown -R medusa:medusa /app
 USER medusa
