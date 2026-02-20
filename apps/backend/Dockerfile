@@ -25,6 +25,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --from=builder /app/apps/backend/ apps/backend/
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --filter backend... --prod
+RUN chown -R medusa:medusa /app
 USER medusa
 EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
