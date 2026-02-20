@@ -18,6 +18,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	}
 
 	const { lineItemId, quantity } = result.data;
-	const { cart } = await updateLineItem(cartId, lineItemId, quantity);
-	return json({ cart });
+
+	try {
+		const { cart } = await updateLineItem(cartId, lineItemId, quantity);
+		return json({ cart });
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Failed to update cart item';
+		return json({ error: message }, { status: 500 });
+	}
 };

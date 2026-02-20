@@ -19,6 +19,15 @@ export function closeCart() {
 	cartOpen.set(false);
 }
 
+async function parseResponseError(response: Response, fallback: string): Promise<string> {
+	try {
+		const data = await response.json();
+		return data.error || fallback;
+	} catch {
+		return fallback;
+	}
+}
+
 export async function addToCartOptimistic(variantId: string, quantity: number = 1) {
 	try {
 		const response = await fetch('/api/cart/add', {
@@ -28,7 +37,8 @@ export async function addToCartOptimistic(variantId: string, quantity: number = 
 		});
 
 		if (!response.ok) {
-			throw new Error('Failed to add to cart');
+			const message = await parseResponseError(response, 'Failed to add item to cart');
+			throw new Error(message);
 		}
 
 		const data = await response.json();
@@ -37,7 +47,7 @@ export async function addToCartOptimistic(variantId: string, quantity: number = 
 		toast.success('Added to cart');
 	} catch (error) {
 		console.error('Failed to add to cart:', error);
-		toast.error('Could not add item');
+		toast.error(error instanceof Error ? error.message : 'Failed to add item to cart');
 		throw error;
 	}
 }
@@ -51,7 +61,8 @@ export async function updateCartItem(lineItemId: string, quantity: number) {
 		});
 
 		if (!response.ok) {
-			throw new Error('Failed to update cart');
+			const message = await parseResponseError(response, 'Failed to update cart');
+			throw new Error(message);
 		}
 
 		const data = await response.json();
@@ -59,7 +70,7 @@ export async function updateCartItem(lineItemId: string, quantity: number) {
 		toast.success('Cart updated');
 	} catch (error) {
 		console.error('Failed to update cart:', error);
-		toast.error('Could not update item');
+		toast.error(error instanceof Error ? error.message : 'Failed to update cart');
 		throw error;
 	}
 }
@@ -73,7 +84,8 @@ export async function removeCartItem(lineItemId: string) {
 		});
 
 		if (!response.ok) {
-			throw new Error('Failed to remove item');
+			const message = await parseResponseError(response, 'Failed to remove item');
+			throw new Error(message);
 		}
 
 		const data = await response.json();
@@ -81,7 +93,7 @@ export async function removeCartItem(lineItemId: string) {
 		toast.success('Item removed');
 	} catch (error) {
 		console.error('Failed to remove from cart:', error);
-		toast.error('Could not remove item');
+		toast.error(error instanceof Error ? error.message : 'Failed to remove item');
 		throw error;
 	}
 }

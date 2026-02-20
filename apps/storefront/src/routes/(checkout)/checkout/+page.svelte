@@ -117,7 +117,7 @@
 			await invalidateAll();
 			step = 'payment';
 		} catch (err) {
-			shippingError = err instanceof Error ? err.message : 'Something went wrong';
+			shippingError = err instanceof Error ? err.message : 'Unable to proceed with checkout. Please try again.';
 		} finally {
 			shippingLoading = false;
 			paymentLoading = false;

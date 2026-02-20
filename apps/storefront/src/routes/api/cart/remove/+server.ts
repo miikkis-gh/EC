@@ -14,7 +14,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		return json({ error: 'lineItemId is required' }, { status: 400 });
 	}
 
-	await removeLineItem(cartId, lineItemId);
-	const { cart } = await getCart(cartId);
-	return json({ cart });
+	try {
+		await removeLineItem(cartId, lineItemId);
+		const { cart } = await getCart(cartId);
+		return json({ cart });
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Failed to remove cart item';
+		return json({ error: message }, { status: 500 });
+	}
 };

@@ -10,7 +10,7 @@
 			</div>
 
 			<!-- Shop Links -->
-			<div>
+			<nav aria-label="Shop">
 				<h3 class="text-sm font-semibold text-neutral-900">Shop</h3>
 				<ul class="mt-3 space-y-2">
 					<li>
@@ -24,10 +24,10 @@
 						</a>
 					</li>
 				</ul>
-			</div>
+			</nav>
 
 			<!-- Company Links -->
-			<div>
+			<nav aria-label="Company">
 				<h3 class="text-sm font-semibold text-neutral-900">Company</h3>
 				<ul class="mt-3 space-y-2">
 					<li>
@@ -46,10 +46,10 @@
 						</a>
 					</li>
 				</ul>
-			</div>
+			</nav>
 
 			<!-- Support Links -->
-			<div>
+			<nav aria-label="Support">
 				<h3 class="text-sm font-semibold text-neutral-900">Support</h3>
 				<ul class="mt-3 space-y-2">
 					<li>
@@ -63,7 +63,7 @@
 						</a>
 					</li>
 				</ul>
-			</div>
+			</nav>
 		</div>
 
 		<div class="mt-8 border-t border-neutral-200 pt-8 text-center">

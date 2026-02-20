@@ -62,6 +62,10 @@
 	</div>
 {/if}
 
+<a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-neutral-900 focus:shadow-lg focus:ring-2 focus:ring-primary-600">
+	Skip to content
+</a>
+
 <div class="flex min-h-screen flex-col">
 	<AnnouncementBar
 		message="Free shipping on orders over €50"
@@ -77,7 +81,7 @@
 		open={mobileMenuOpen}
 		onclose={() => mobileMenuOpen = false}
 	/>
-	<main class="flex-1">
+	<main id="main-content" class="flex-1">
 		{@render children()}
 	</main>
 	<Footer />
