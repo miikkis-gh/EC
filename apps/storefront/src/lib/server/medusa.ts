@@ -205,12 +205,24 @@ export async function medusaRequest<T>(
 
 // --- Products ---
 
+// --- Regions ---
+
+let cachedRegionId: string | null = null;
+
+export async function getDefaultRegionId(): Promise<string> {
+	if (cachedRegionId) return cachedRegionId;
+	const data = await medusaRequest<{ regions: { id: string }[] }>('/regions?limit=1');
+	cachedRegionId = data.regions[0]?.id ?? '';
+	return cachedRegionId;
+}
+
 export async function getProducts(params?: {
 	limit?: number;
 	offset?: number;
 	collection_id?: string[];
 	order?: string;
 }): Promise<{ products: Product[]; count: number; offset: number; limit: number }> {
+	const regionId = await getDefaultRegionId();
 	const searchParams = new URLSearchParams();
 	if (params?.limit) searchParams.set('limit', String(params.limit));
 	if (params?.offset) searchParams.set('offset', String(params.offset));
@@ -219,6 +231,7 @@ export async function getProducts(params?: {
 		params.collection_id.forEach((id) => searchParams.append('collection_id[]', id));
 	}
 	searchParams.set('fields', '+variants.calculated_price');
+	if (regionId) searchParams.set('region_id', regionId);
 
 	const query = searchParams.toString();
 	return medusaRequest<{ products: Product[]; count: number; offset: number; limit: number }>(
@@ -229,8 +242,10 @@ export async function getProducts(params?: {
 export async function getProductByHandle(
 	handle: string
 ): Promise<{ products: Product[] }> {
+	const regionId = await getDefaultRegionId();
+	const regionParam = regionId ? `&region_id=${regionId}` : '';
 	return medusaRequest<{ products: Product[] }>(
-		`/products?handle=${encodeURIComponent(handle)}&fields=+variants.calculated_price`
+		`/products?handle=${encodeURIComponent(handle)}&fields=+variants.calculated_price${regionParam}`
 	);
 }
 

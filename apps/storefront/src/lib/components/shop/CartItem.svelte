@@ -55,7 +55,7 @@
 				{/if}
 			</div>
 			<PriceDisplay
-				amount={item.total}
+				amount={item.total ?? item.unit_price * item.quantity}
 				{currencyCode}
 				class="text-sm font-medium text-neutral-900"
 			/>
