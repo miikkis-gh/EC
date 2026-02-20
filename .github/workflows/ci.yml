@@ -84,6 +84,7 @@ jobs:
       - name: Trigger Coolify Staging Deploy
         run: |
           curl -sf -X POST "${{ secrets.COOLIFY_STAGING_WEBHOOK_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}" \
             || echo "::warning::Coolify staging webhook failed"
 
   deploy-production:
@@ -95,4 +96,5 @@ jobs:
       - name: Trigger Coolify Production Deploy
         run: |
           curl -sf -X POST "${{ secrets.COOLIFY_PRODUCTION_WEBHOOK_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}" \
             || echo "::warning::Coolify production webhook failed"
