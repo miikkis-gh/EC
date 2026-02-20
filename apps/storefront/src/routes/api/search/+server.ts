@@ -1,6 +1,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { searchProducts } from '$server/search';
+import { createLogger } from '$server/logger';
+
+const logger = createLogger('api:search');
 
 export const GET: RequestHandler = async ({ url }) => {
 	const query = url.searchParams.get('q') || '';
@@ -10,6 +13,11 @@ export const GET: RequestHandler = async ({ url }) => {
 		return json({ hits: [], query: '', processingTimeMs: 0, estimatedTotalHits: 0 });
 	}
 
-	const results = await searchProducts(query, { limit });
-	return json(results);
+	try {
+		const results = await searchProducts(query, { limit });
+		return json(results);
+	} catch (error) {
+		logger.error('Search failed', error, { query, limit });
+		return json({ hits: [], query, processingTimeMs: 0, estimatedTotalHits: 0 });
+	}
 };

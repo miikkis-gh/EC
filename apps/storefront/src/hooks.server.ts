@@ -3,9 +3,12 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { json } from '@sveltejs/kit';
 import { validateSessionToken, setSessionTokenCookie } from '$server/auth';
 import { generalLimiter, authLimiter, checkoutLimiter } from '$server/rate-limit';
+import { createLogger } from '$server/logger';
 import { dev } from '$app/environment';
 import * as Sentry from '@sentry/sveltekit';
 import '$server/env'; // validate required env vars at startup
+
+const logger = createLogger('hooks');
 
 // --- Sentry init (no-op if DSN not set) ---
 
@@ -166,7 +169,7 @@ export const handleError: HandleServerError = ({ error, event, status, message }
 		});
 	}
 
-	console.error('Server error:', error);
+	logger.error('Server error', error, { url: event.url.pathname, status });
 
 	return {
 		message: 'An unexpected error occurred'
