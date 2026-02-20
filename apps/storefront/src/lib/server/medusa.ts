@@ -99,6 +99,65 @@ export interface Customer {
 	created_at: string;
 }
 
+export interface Address {
+	id: string;
+	first_name: string | null;
+	last_name: string | null;
+	company: string | null;
+	address_1: string | null;
+	address_2: string | null;
+	city: string | null;
+	province: string | null;
+	postal_code: string | null;
+	country_code: string | null;
+	phone: string | null;
+	is_default_shipping: boolean;
+	is_default_billing: boolean;
+}
+
+export interface CustomerWithAddresses extends Customer {
+	addresses: Address[];
+}
+
+export interface OrderItem {
+	id: string;
+	title: string;
+	description: string | null;
+	thumbnail: string | null;
+	quantity: number;
+	unit_price: number;
+	total: number;
+	variant_title: string | null;
+	product_title: string | null;
+}
+
+export interface Order {
+	id: string;
+	display_id: number;
+	status: string;
+	payment_status: string;
+	fulfillment_status: string;
+	currency_code: string;
+	total: number;
+	subtotal: number;
+	tax_total: number;
+	shipping_total: number;
+	discount_total: number;
+	items: OrderItem[];
+	shipping_address: {
+		first_name: string | null;
+		last_name: string | null;
+		address_1: string | null;
+		address_2: string | null;
+		city: string | null;
+		province: string | null;
+		postal_code: string | null;
+		country_code: string | null;
+		phone: string | null;
+	} | null;
+	created_at: string;
+}
+
 export interface PaginatedResponse<T> {
 	count: number;
 	offset: number;
@@ -359,6 +418,98 @@ export async function completeCart(cartId: string): Promise<{ type: string; data
 
 export async function getCustomer(token: string): Promise<{ customer: Customer }> {
 	return medusaRequest<{ customer: Customer }>('/customers/me', {
+		headers: { Authorization: `Bearer ${token}` }
+	});
+}
+
+export async function getCustomerWithAddresses(
+	token: string
+): Promise<{ customer: CustomerWithAddresses }> {
+	return medusaRequest<{ customer: CustomerWithAddresses }>(
+		'/customers/me?fields=*addresses',
+		{
+			headers: { Authorization: `Bearer ${token}` }
+		}
+	);
+}
+
+export async function updateCustomer(
+	token: string,
+	data: { first_name?: string; last_name?: string; phone?: string }
+): Promise<{ customer: Customer }> {
+	return medusaRequest<{ customer: Customer }>('/customers/me', {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${token}` },
+		body: JSON.stringify(data)
+	});
+}
+
+export async function getCustomerOrders(
+	token: string,
+	params?: { limit?: number; offset?: number }
+): Promise<{ orders: Order[]; count: number; offset: number; limit: number }> {
+	const searchParams = new URLSearchParams();
+	if (params?.limit) searchParams.set('limit', String(params.limit));
+	if (params?.offset) searchParams.set('offset', String(params.offset));
+	searchParams.set('fields', '+items,+shipping_address');
+	searchParams.set('order', '-created_at');
+
+	const query = searchParams.toString();
+	return medusaRequest<{ orders: Order[]; count: number; offset: number; limit: number }>(
+		`/orders${query ? `?${query}` : ''}`,
+		{
+			headers: { Authorization: `Bearer ${token}` }
+		}
+	);
+}
+
+export async function getOrder(
+	token: string,
+	orderId: string
+): Promise<{ order: Order }> {
+	return medusaRequest<{ order: Order }>(
+		`/orders/${orderId}?fields=+items,+shipping_address`,
+		{
+			headers: { Authorization: `Bearer ${token}` }
+		}
+	);
+}
+
+export async function addCustomerAddress(
+	token: string,
+	address: Record<string, string>
+): Promise<{ customer: CustomerWithAddresses }> {
+	return medusaRequest<{ customer: CustomerWithAddresses }>(
+		'/customers/me/addresses',
+		{
+			method: 'POST',
+			headers: { Authorization: `Bearer ${token}` },
+			body: JSON.stringify(address)
+		}
+	);
+}
+
+export async function updateCustomerAddress(
+	token: string,
+	addressId: string,
+	data: Record<string, string>
+): Promise<{ customer: CustomerWithAddresses }> {
+	return medusaRequest<{ customer: CustomerWithAddresses }>(
+		`/customers/me/addresses/${addressId}`,
+		{
+			method: 'POST',
+			headers: { Authorization: `Bearer ${token}` },
+			body: JSON.stringify(data)
+		}
+	);
+}
+
+export async function deleteCustomerAddress(
+	token: string,
+	addressId: string
+): Promise<void> {
+	await medusaRequest(`/customers/me/addresses/${addressId}`, {
+		method: 'DELETE',
 		headers: { Authorization: `Bearer ${token}` }
 	});
 }

@@ -61,3 +61,11 @@ export const contactSchema = z.object({
 	email: emailSchema,
 	message: z.string().min(1, 'Message is required').max(5000)
 });
+
+// --- Profile schema ---
+
+export const profileSchema = z.object({
+	first_name: z.string().max(100).optional(),
+	last_name: z.string().max(100).optional(),
+	phone: z.string().max(20).optional()
+});
