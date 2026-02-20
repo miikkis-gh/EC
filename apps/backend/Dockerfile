@@ -5,6 +5,8 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/backend/ apps/backend/
 RUN pnpm install --frozen-lockfile --filter backend...
+ARG MEDUSA_BACKEND_URL
+ENV MEDUSA_BACKEND_URL=$MEDUSA_BACKEND_URL
 RUN pnpm --filter backend run build
 RUN cp apps/backend/.medusa/server/medusa-config.js apps/backend/medusa-config.js && \
     cp apps/backend/.medusa/server/instrumentation.js apps/backend/instrumentation.js 2>/dev/null || true
