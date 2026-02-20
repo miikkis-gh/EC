@@ -167,6 +167,8 @@ export interface PaginatedResponse<T> {
 
 // --- Generic Fetcher ---
 
+const DEFAULT_TIMEOUT_MS = 15_000;
+
 interface MedusaError {
 	message: string;
 	type: string;
@@ -187,20 +189,33 @@ export async function medusaRequest<T>(
 		headers['x-cart-id'] = cartId;
 	}
 
-	const response = await fetch(`${BACKEND_URL}/store${path}`, {
-		...options,
-		headers
-	});
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-	if (!response.ok) {
-		const error: MedusaError = await response.json().catch(() => ({
-			message: `Request failed with status ${response.status}`,
-			type: 'unknown_error'
-		}));
-		throw new Error(error.message);
+	try {
+		const response = await fetch(`${BACKEND_URL}/store${path}`, {
+			...options,
+			headers,
+			signal: controller.signal
+		});
+
+		if (!response.ok) {
+			const error: MedusaError = await response.json().catch(() => ({
+				message: `Request failed with status ${response.status}`,
+				type: 'unknown_error'
+			}));
+			throw new Error(error.message);
+		}
+
+		return response.json();
+	} catch (error) {
+		if (error instanceof DOMException && error.name === 'AbortError') {
+			throw new Error(`Request to ${path} timed out after ${DEFAULT_TIMEOUT_MS}ms`);
+		}
+		throw error;
+	} finally {
+		clearTimeout(timeout);
 	}
-
-	return response.json();
 }
 
 // --- Products ---
@@ -535,36 +550,62 @@ export async function loginMedusa(
 	email: string,
 	password: string
 ): Promise<{ token: string }> {
-	const response = await fetch(`${BACKEND_URL}/auth/customer/emailpass`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ email, password })
-	});
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-	if (!response.ok) {
-		const err = await response.json().catch(() => ({ message: 'Login failed' }));
-		throw new Error(err.message || 'Login failed');
+	try {
+		const response = await fetch(`${BACKEND_URL}/auth/customer/emailpass`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email, password }),
+			signal: controller.signal
+		});
+
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({ message: 'Login failed' }));
+			throw new Error(err.message || 'Login failed');
+		}
+
+		return response.json();
+	} catch (error) {
+		if (error instanceof DOMException && error.name === 'AbortError') {
+			throw new Error('Login request timed out. Please try again.');
+		}
+		throw error;
+	} finally {
+		clearTimeout(timeout);
 	}
-
-	return response.json();
 }
 
 export async function registerMedusaAuth(
 	email: string,
 	password: string
 ): Promise<{ token: string }> {
-	const response = await fetch(`${BACKEND_URL}/auth/customer/emailpass/register`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ email, password })
-	});
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-	if (!response.ok) {
-		const err = await response.json().catch(() => ({ message: 'Registration failed' }));
-		throw new Error(err.message || 'Registration failed');
+	try {
+		const response = await fetch(`${BACKEND_URL}/auth/customer/emailpass/register`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email, password }),
+			signal: controller.signal
+		});
+
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({ message: 'Registration failed' }));
+			throw new Error(err.message || 'Registration failed');
+		}
+
+		return response.json();
+	} catch (error) {
+		if (error instanceof DOMException && error.name === 'AbortError') {
+			throw new Error('Registration request timed out. Please try again.');
+		}
+		throw error;
+	} finally {
+		clearTimeout(timeout);
 	}
-
-	return response.json();
 }
 
 export async function createMedusaCustomer(

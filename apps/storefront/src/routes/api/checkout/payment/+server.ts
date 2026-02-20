@@ -8,24 +8,32 @@ export const POST: RequestHandler = async ({ cookies }) => {
 		return json({ error: 'No cart found' }, { status: 400 });
 	}
 
-	// Create payment collection for the cart
-	const { payment_collection } = await initPaymentSessions(cartId);
+	try {
+		// Create payment collection for the cart
+		const { payment_collection } = await initPaymentSessions(cartId);
 
-	// Initiate a Stripe payment session
-	const { payment_session } = await initiatePaymentSession(
-		payment_collection.id,
-		'pp_stripe_stripe'
-	);
+		// Initiate a Stripe payment session
+		const { payment_session } = await initiatePaymentSession(
+			payment_collection.id,
+			'pp_stripe_stripe'
+		);
 
-	const clientSecret = payment_session.data?.client_secret as string | undefined;
+		const clientSecret = payment_session.data?.client_secret as string | undefined;
 
-	if (!clientSecret) {
-		return json({ error: 'Failed to get payment client secret' }, { status: 500 });
+		if (!clientSecret) {
+			return json({ error: 'Failed to get payment client secret' }, { status: 500 });
+		}
+
+		return json({
+			clientSecret,
+			paymentSessionId: payment_session.id,
+			paymentCollectionId: payment_collection.id
+		});
+	} catch (error) {
+		console.error('Payment initialization failed:', error);
+		return json(
+			{ error: 'Unable to initialize payment. Please try again.' },
+			{ status: 500 }
+		);
 	}
-
-	return json({
-		clientSecret,
-		paymentSessionId: payment_session.id,
-		paymentCollectionId: payment_collection.id
-	});
 };

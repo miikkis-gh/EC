@@ -55,23 +55,28 @@ export const actions: Actions = {
 		try {
 			const authResult = await registerMedusaAuth(email, password);
 			medusaToken = authResult.token;
-		} catch {
-			// Non-fatal: continue with local-only account
+		} catch (error) {
+			console.error('Medusa auth registration failed:', error);
+			return fail(503, {
+				error: 'Registration service is temporarily unavailable. Please try again shortly.',
+				email,
+				firstName,
+				lastName
+			});
 		}
 
 		// Create Medusa customer profile
 		let medusaCustomerId: string | undefined;
-		if (medusaToken) {
-			try {
-				const { customer } = await createMedusaCustomer(medusaToken, {
-					email,
-					first_name: firstName || undefined,
-					last_name: lastName || undefined
-				});
-				medusaCustomerId = customer.id;
-			} catch {
-				// Non-fatal
-			}
+		try {
+			const { customer } = await createMedusaCustomer(medusaToken, {
+				email,
+				first_name: firstName || undefined,
+				last_name: lastName || undefined
+			});
+			medusaCustomerId = customer.id;
+		} catch (error) {
+			// Non-fatal: auth succeeded so account works, customer profile can be created later
+			console.error('Medusa customer profile creation failed:', error);
 		}
 
 		// Create local user
