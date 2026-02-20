@@ -33,6 +33,21 @@ export default defineConfig({
     }),
   },
   modules: [
+    // File — local storage with configurable URL
+    {
+      resolve: '@medusajs/medusa/file',
+      options: {
+        providers: [
+          {
+            resolve: '@medusajs/medusa/file-local',
+            id: 'local',
+            options: {
+              backend_url: `${process.env.MEDUSA_BACKEND_URL || 'http://localhost:9000'}/static`,
+            },
+          },
+        ],
+      },
+    },
     // Payment — Stripe
     {
       resolve: '@medusajs/medusa/payment',
