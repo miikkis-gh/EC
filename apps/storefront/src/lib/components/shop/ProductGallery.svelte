@@ -9,6 +9,11 @@
 
 	let { images, thumbnail, alt }: Props = $props();
 	let selectedIndex = $state(0);
+	let failedUrls = $state(new Set<string>());
+
+	function handleImgError(url: string) {
+		failedUrls = new Set([...failedUrls, url]);
+	}
 
 	const allImages = $derived(() => {
 		if (images.length > 0) return images;
@@ -32,11 +37,12 @@
 <div class="space-y-4" onkeydown={handleKeydown} tabindex="0" role="region" aria-label="Product images">
 	<!-- Main image -->
 	<div class="aspect-square overflow-hidden rounded-2xl bg-neutral-100">
-		{#if currentImage}
+		{#if currentImage && !failedUrls.has(currentImage.url)}
 			<img
 				src={currentImage.url}
 				{alt}
 				class="h-full w-full object-cover"
+				onerror={() => handleImgError(currentImage.url)}
 			/>
 		{:else}
 			<div class="flex h-full items-center justify-center text-neutral-400">
@@ -59,12 +65,21 @@
 					)}
 					aria-label="View image {i + 1}"
 				>
-					<img
-						src={image.url}
-						{alt}
-						class="h-full w-full object-cover"
-						loading="lazy"
-					/>
+					{#if !failedUrls.has(image.url)}
+						<img
+							src={image.url}
+							{alt}
+							class="h-full w-full object-cover"
+							loading="lazy"
+							onerror={() => handleImgError(image.url)}
+						/>
+					{:else}
+						<div class="flex h-full items-center justify-center text-neutral-300">
+							<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+							</svg>
+						</div>
+					{/if}
 				</button>
 			{/each}
 		</div>

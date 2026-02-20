@@ -11,6 +11,7 @@
 
 	let containerEl: HTMLElement | undefined = $state();
 	let imgEl: HTMLElement | undefined = $state();
+	let imgFailed = $state(false);
 
 	$effect(() => {
 		if (!containerEl || !imgEl) return;
@@ -38,13 +39,14 @@
 >
 	<!-- Image -->
 	<div class="aspect-square overflow-hidden bg-neutral-100">
-		{#if product.thumbnail}
+		{#if product.thumbnail && !imgFailed}
 			<img
 				bind:this={imgEl}
 				src={product.thumbnail}
 				alt={product.title}
 				class="h-full w-full object-cover"
 				loading="lazy"
+				onerror={() => imgFailed = true}
 			/>
 		{:else}
 			<div class="flex h-full items-center justify-center text-neutral-400">
