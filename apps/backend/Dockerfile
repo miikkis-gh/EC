@@ -7,8 +7,10 @@ COPY apps/backend/ apps/backend/
 RUN pnpm install --frozen-lockfile --filter backend...
 RUN pnpm --filter backend run build
 RUN cp apps/backend/.medusa/server/medusa-config.js apps/backend/medusa-config.js && \
-    cp apps/backend/.medusa/server/instrumentation.js apps/backend/instrumentation.js 2>/dev/null || true && \
-    cp -r apps/backend/.medusa/server/public apps/backend/public
+    cp apps/backend/.medusa/server/instrumentation.js apps/backend/instrumentation.js 2>/dev/null || true
+RUN test -f apps/backend/.medusa/server/public/admin/index.html || \
+    (echo "ERROR: Admin build output not found. medusa build did not produce admin frontend." && exit 1)
+RUN cp -r apps/backend/.medusa/server/public apps/backend/public
 RUN rm -rf apps/backend/src
 
 # Stage 2: Production
