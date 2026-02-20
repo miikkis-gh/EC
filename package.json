@@ -8,7 +8,10 @@
       "esbuild",
       "msgpackr-extract",
       "protobufjs"
-    ]
+    ],
+    "overrides": {
+      "zod": "3.25.76"
+    }
   },
   "scripts": {
     "dev": "pnpm --filter './apps/**' run dev",

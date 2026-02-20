@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // --- Primitive schemas ---
 
-export const emailSchema = z.email('Invalid email address');
+export const emailSchema = z.string().email('Invalid email address');
 
 export const passwordSchema = z
 	.string()
