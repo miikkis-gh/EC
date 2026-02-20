@@ -56,6 +56,16 @@ export async function getUserById(id: string): Promise<LocalUser | null> {
 	return row ? mapRow(row) : null;
 }
 
+export async function updateUserPasswordHash(
+	userId: string,
+	passwordHash: string
+): Promise<void> {
+	await execute(
+		'UPDATE auth_user SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+		[passwordHash, userId]
+	);
+}
+
 export async function updateUserMedusaCustomerId(
 	userId: string,
 	medusaCustomerId: string

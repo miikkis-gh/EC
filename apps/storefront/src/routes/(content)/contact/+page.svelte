@@ -47,6 +47,12 @@
 				</div>
 			{:else}
 				<form method="POST" use:enhance class="space-y-6">
+					{#if form?.errors?._form}
+						<div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+							{form.errors._form[0]}
+						</div>
+					{/if}
+
 					<div class="space-y-2">
 						<Label for="name">Name</Label>
 						<Input

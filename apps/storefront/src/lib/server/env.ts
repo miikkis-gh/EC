@@ -13,11 +13,24 @@ const required = [
 	'MEDUSA_PUBLISHABLE_KEY'
 ] as const;
 
+const optional = [
+	'RESEND_API_KEY',
+	'EMAIL_FROM',
+	'CONTACT_EMAIL'
+] as const;
+
 if (!building) {
 	const missing = required.filter((name) => !env[name]);
 	if (missing.length > 0) {
 		throw new Error(
 			`Missing required environment variables: ${missing.join(', ')}`
+		);
+	}
+
+	const missingOptional = optional.filter((name) => !env[name]);
+	if (missingOptional.length > 0) {
+		console.warn(
+			`Optional environment variables not set: ${missingOptional.join(', ')}`
 		);
 	}
 }

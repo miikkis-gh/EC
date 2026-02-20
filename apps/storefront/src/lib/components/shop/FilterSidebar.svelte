@@ -7,16 +7,29 @@
 
 	interface Props {
 		collections: { id: string; title: string }[];
+		categories?: { id: string; name: string }[];
 		class?: string;
 	}
 
-	let { collections, class: className }: Props = $props();
+	let { collections, categories = [], class: className }: Props = $props();
 	let mobileOpen = $state(false);
 
 	const currentSort = $derived($page.url.searchParams.get('sort') || 'newest');
 	const selectedCollections = $derived(
 		$page.url.searchParams.getAll('collection_id')
 	);
+	const selectedCategories = $derived(
+		$page.url.searchParams.getAll('category_id')
+	);
+	const currentQuery = $derived($page.url.searchParams.get('q') || '');
+
+	let searchInput = $state('');
+	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+	// Sync search input with URL on navigation
+	$effect(() => {
+		searchInput = currentQuery;
+	});
 
 	function updateParams(updates: Record<string, string | string[] | null>) {
 		const params = new URLSearchParams($page.url.searchParams);
@@ -52,15 +65,78 @@
 		updateParams({ collection_id: current.length > 0 ? current : null });
 	}
 
-	function clearAll() {
-		updateParams({ sort: null, collection_id: null });
+	function toggleCategory(id: string) {
+		const current = [...selectedCategories];
+		const index = current.indexOf(id);
+		if (index >= 0) {
+			current.splice(index, 1);
+		} else {
+			current.push(id);
+		}
+		updateParams({ category_id: current.length > 0 ? current : null });
 	}
 
-	const hasFilters = $derived(currentSort !== 'newest' || selectedCollections.length > 0);
+	function handleSearchInput(e: Event) {
+		const value = (e.target as HTMLInputElement).value;
+		searchInput = value;
+
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			updateParams({ q: value.trim() || null });
+		}, 300);
+	}
+
+	function clearSearch() {
+		searchInput = '';
+		clearTimeout(debounceTimer);
+		updateParams({ q: null });
+	}
+
+	function clearAll() {
+		searchInput = '';
+		clearTimeout(debounceTimer);
+		updateParams({ sort: null, collection_id: null, category_id: null, q: null });
+	}
+
+	const hasFilters = $derived(
+		currentSort !== 'newest' ||
+		selectedCollections.length > 0 ||
+		selectedCategories.length > 0 ||
+		currentQuery.length > 0
+	);
 </script>
 
 {#snippet filterContent()}
 	<div class="space-y-6">
+		<!-- Search -->
+		<div>
+			<label for="search-input" class="mb-2 block text-sm font-semibold text-neutral-900">Search</label>
+			<div class="relative">
+				<input
+					id="search-input"
+					type="text"
+					value={searchInput}
+					oninput={handleSearchInput}
+					placeholder="Search products..."
+					class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-8 text-sm text-neutral-700 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+				/>
+				<svg class="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+				</svg>
+				{#if searchInput}
+					<button
+						onclick={clearSearch}
+						class="absolute right-2 top-2.5 text-neutral-400 hover:text-neutral-600"
+						aria-label="Clear search"
+					>
+						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+						</svg>
+					</button>
+				{/if}
+			</div>
+		</div>
+
 		<!-- Sort -->
 		<div>
 			<label for="sort-select" class="mb-2 block text-sm font-semibold text-neutral-900">Sort by</label>
@@ -91,6 +167,26 @@
 								class="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
 							/>
 							{collection.title}
+						</label>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		<!-- Categories -->
+		{#if categories.length > 0}
+			<div>
+				<h3 class="mb-2 text-sm font-semibold text-neutral-900">Categories</h3>
+				<div class="space-y-2">
+					{#each categories as category (category.id)}
+						<label class="flex items-center gap-2 text-sm text-neutral-700">
+							<input
+								type="checkbox"
+								checked={selectedCategories.includes(category.id)}
+								onchange={() => toggleCategory(category.id)}
+								class="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+							/>
+							{category.name}
 						</label>
 					{/each}
 				</div>

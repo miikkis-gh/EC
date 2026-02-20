@@ -36,7 +36,7 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
 	const path = event.url.pathname;
 
 	// Auth routes: stricter limit
-	if (path.startsWith('/login') || path.startsWith('/register') || path.startsWith('/api/auth')) {
+	if (path.startsWith('/login') || path.startsWith('/register') || path.startsWith('/api/auth') || path.startsWith('/forgot-password') || path.startsWith('/reset-password')) {
 		const result = await authLimiter.consume(ip);
 		if (!result.allowed) {
 			return json(

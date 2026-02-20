@@ -75,6 +75,52 @@ export async function updateCartItem(lineItemId: string, quantity: number) {
 	}
 }
 
+export async function applyPromoCode(code: string) {
+	try {
+		const response = await fetch('/api/cart/promo', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ code })
+		});
+
+		if (!response.ok) {
+			const message = await parseResponseError(response, 'Invalid promo code');
+			throw new Error(message);
+		}
+
+		const data = await response.json();
+		cart.set(data.cart);
+		toast.success('Promo code applied');
+	} catch (error) {
+		console.error('Failed to apply promo code:', error);
+		toast.error(error instanceof Error ? error.message : 'Failed to apply promo code');
+		throw error;
+	}
+}
+
+export async function removePromoCode(code: string) {
+	try {
+		const response = await fetch('/api/cart/promo', {
+			method: 'DELETE',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ code })
+		});
+
+		if (!response.ok) {
+			const message = await parseResponseError(response, 'Failed to remove promo code');
+			throw new Error(message);
+		}
+
+		const data = await response.json();
+		cart.set(data.cart);
+		toast.success('Promo code removed');
+	} catch (error) {
+		console.error('Failed to remove promo code:', error);
+		toast.error(error instanceof Error ? error.message : 'Failed to remove promo code');
+		throw error;
+	}
+}
+
 export async function removeCartItem(lineItemId: string) {
 	try {
 		const response = await fetch('/api/cart/remove', {

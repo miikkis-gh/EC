@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/stores';
 	import { Button } from '$ui/button';
 	import { Input } from '$ui/input';
 	import { Label } from '$ui/label';
@@ -11,6 +12,8 @@
 	}
 
 	let { form }: Props = $props();
+
+	const resetSuccess = $derived($page.url.searchParams.get('reset') === 'success');
 
 	let passkeyLoading = $state(false);
 	let passkeyError = $state('');
@@ -84,6 +87,12 @@
 
 		<!-- Email/password form -->
 		<form method="POST" use:enhance class="space-y-4">
+			{#if resetSuccess}
+				<div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+					Your password has been reset. Please sign in with your new password.
+				</div>
+			{/if}
+
 			{#if form?.error}
 				<div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
 					{form.error}
@@ -103,7 +112,12 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="password">Password</Label>
+				<div class="flex items-center justify-between">
+					<Label for="password">Password</Label>
+					<a href="/forgot-password" class="text-xs font-medium text-primary-600 hover:text-primary-700">
+						Forgot password?
+					</a>
+				</div>
 				<Input
 					id="password"
 					name="password"

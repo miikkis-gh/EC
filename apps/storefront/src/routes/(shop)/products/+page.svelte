@@ -2,12 +2,15 @@
 	import ProductGrid from '$components/shop/ProductGrid.svelte';
 	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
 	import FilterSidebar from '$components/shop/FilterSidebar.svelte';
+	import { page } from '$app/stores';
 	import { fadeInUp } from '$utils/animations';
+	import type { ProductCategory } from '$server/medusa';
 
 	interface Props {
 		data: {
 			products: import('$server/medusa').Product[];
 			collections: import('$server/medusa').Collection[];
+			categories: ProductCategory[];
 			count: number;
 			page: number;
 			pageCount: number;
@@ -21,6 +24,17 @@
 	$effect(() => {
 		if (headingEl) fadeInUp(headingEl);
 	});
+
+	function paginationUrl(pageNum: number): string {
+		const params = new URLSearchParams($page.url.searchParams);
+		if (pageNum <= 1) {
+			params.delete('page');
+		} else {
+			params.set('page', String(pageNum));
+		}
+		const qs = params.toString();
+		return `/products${qs ? `?${qs}` : ''}`;
+	}
 </script>
 
 <svelte:head>
@@ -41,7 +55,7 @@
 	{/if}
 
 	<div class="flex gap-8">
-		<FilterSidebar collections={data.collections} />
+		<FilterSidebar collections={data.collections} categories={data.categories} />
 
 		<div class="min-w-0 flex-1">
 			<ProductGrid products={data.products} />
@@ -51,7 +65,7 @@
 				<nav class="mt-12 flex items-center justify-center gap-2" aria-label="Pagination">
 					{#if data.page > 1}
 						<a
-							href="/products?page={data.page - 1}"
+							href={paginationUrl(data.page - 1)}
 							class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
 						>
 							Previous
@@ -60,7 +74,7 @@
 
 					{#each Array.from({ length: data.pageCount }, (_, i) => i + 1) as pageNum}
 						<a
-							href="/products?page={pageNum}"
+							href={paginationUrl(pageNum)}
 							class="rounded-lg px-4 py-2 text-sm {pageNum === data.page
 								? 'bg-primary-600 text-white'
 								: 'border border-neutral-200 text-neutral-700 hover:bg-neutral-50'}"
@@ -71,7 +85,7 @@
 
 					{#if data.page < data.pageCount}
 						<a
-							href="/products?page={data.page + 1}"
+							href={paginationUrl(data.page + 1)}
 							class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
 						>
 							Next

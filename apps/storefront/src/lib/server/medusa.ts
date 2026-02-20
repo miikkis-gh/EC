@@ -77,6 +77,7 @@ export interface Cart {
 	} | null;
 	payment_collection: PaymentCollection | null;
 	shipping_methods: { shipping_option_id: string }[];
+	promotions?: { code: string }[];
 }
 
 export interface LineItem {
@@ -289,15 +290,21 @@ export async function getProducts(params?: {
 	limit?: number;
 	offset?: number;
 	collection_id?: string[];
+	category_id?: string[];
 	order?: string;
+	q?: string;
 }): Promise<{ products: Product[]; count: number; offset: number; limit: number }> {
 	const regionId = await getDefaultRegionId();
 	const searchParams = new URLSearchParams();
 	if (params?.limit) searchParams.set('limit', String(params.limit));
 	if (params?.offset) searchParams.set('offset', String(params.offset));
 	if (params?.order) searchParams.set('order', params.order);
+	if (params?.q) searchParams.set('q', params.q);
 	if (params?.collection_id) {
 		params.collection_id.forEach((id) => searchParams.append('collection_id[]', id));
+	}
+	if (params?.category_id) {
+		params.category_id.forEach((id) => searchParams.append('category_id[]', id));
 	}
 	searchParams.set('fields', '+variants.calculated_price');
 	if (regionId) searchParams.set('region_id', regionId);
@@ -345,6 +352,30 @@ export async function getCollectionByHandle(
 	);
 }
 
+// --- Product Categories ---
+
+export interface ProductCategory {
+	id: string;
+	name: string;
+	handle: string;
+	description: string | null;
+	parent_category_id: string | null;
+}
+
+export async function getProductCategories(params?: {
+	limit?: number;
+	offset?: number;
+}): Promise<{ product_categories: ProductCategory[]; count: number }> {
+	const searchParams = new URLSearchParams();
+	if (params?.limit) searchParams.set('limit', String(params.limit));
+	if (params?.offset) searchParams.set('offset', String(params.offset));
+
+	const query = searchParams.toString();
+	return medusaRequest<{ product_categories: ProductCategory[]; count: number }>(
+		`/product-categories${query ? `?${query}` : ''}`
+	);
+}
+
 // --- Cart ---
 
 export async function createCart(): Promise<{ cart: Cart }> {
@@ -389,6 +420,28 @@ export async function removeLineItem(
 ): Promise<void> {
 	await medusaRequest(`/carts/${cartId}/line-items/${lineItemId}`, {
 		method: 'DELETE'
+	});
+}
+
+// --- Promo Codes ---
+
+export async function addPromoCode(
+	cartId: string,
+	code: string
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}/promotions`, {
+		method: 'POST',
+		body: JSON.stringify({ promo_codes: [code] })
+	});
+}
+
+export async function removePromoCode(
+	cartId: string,
+	code: string
+): Promise<{ cart: Cart }> {
+	return medusaRequest<{ cart: Cart }>(`/carts/${cartId}/promotions`, {
+		method: 'DELETE',
+		body: JSON.stringify({ promo_codes: [code] })
 	});
 }
 

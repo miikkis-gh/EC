@@ -2,7 +2,34 @@
 	import CartItem from '$components/shop/CartItem.svelte';
 	import PriceDisplay from '$components/shop/PriceDisplay.svelte';
 	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
-	import { cart } from '$stores/cart';
+	import { cart, applyPromoCode, removePromoCode } from '$stores/cart';
+
+	let promoInput = $state('');
+	let promoLoading = $state(false);
+	let promoError = $state('');
+
+	async function handleApplyPromo() {
+		if (!promoInput.trim()) return;
+		promoError = '';
+		promoLoading = true;
+		try {
+			await applyPromoCode(promoInput.trim());
+			promoInput = '';
+		} catch (err) {
+			promoError = err instanceof Error ? err.message : 'Invalid promo code';
+		} finally {
+			promoLoading = false;
+		}
+	}
+
+	async function handleRemovePromo(code: string) {
+		promoLoading = true;
+		try {
+			await removePromoCode(code);
+		} finally {
+			promoLoading = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -31,7 +58,56 @@
 					<span class="text-neutral-600">Shipping</span>
 					<span class="text-neutral-500">Calculated at checkout</span>
 				</div>
+				{#if $cart.discount_total}
+					<div class="flex justify-between text-sm">
+						<span class="text-neutral-600">Discount</span>
+						<span class="text-green-600">-<PriceDisplay amount={$cart.discount_total} currencyCode={$cart.currency_code} /></span>
+					</div>
+				{/if}
 			</div>
+
+			<!-- Promo code -->
+			<div class="mt-4 border-t border-neutral-200 pt-4">
+				{#if $cart.promotions && $cart.promotions.length > 0}
+					<div class="mb-2 flex flex-wrap gap-2">
+						{#each $cart.promotions as promo (promo.code)}
+							<span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+								{promo.code}
+								<button
+									onclick={() => handleRemovePromo(promo.code)}
+									disabled={promoLoading}
+									class="ml-1 text-green-500 hover:text-green-700"
+									aria-label="Remove promo code {promo.code}"
+								>
+									<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+									</svg>
+								</button>
+							</span>
+						{/each}
+					</div>
+				{/if}
+				<div class="flex gap-2">
+					<input
+						type="text"
+						bind:value={promoInput}
+						placeholder="Promo code"
+						class="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+						onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
+					/>
+					<button
+						onclick={handleApplyPromo}
+						disabled={promoLoading || !promoInput.trim()}
+						class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50"
+					>
+						{promoLoading ? '...' : 'Apply'}
+					</button>
+				</div>
+				{#if promoError}
+					<p class="mt-1 text-xs text-red-600">{promoError}</p>
+				{/if}
+			</div>
+
 			<div class="mt-4 flex justify-between border-t border-neutral-200 pt-4">
 				<span class="text-base font-semibold text-neutral-900">Total</span>
 				<PriceDisplay amount={$cart.total ?? 0} currencyCode={$cart.currency_code} class="text-base font-semibold text-neutral-900" />

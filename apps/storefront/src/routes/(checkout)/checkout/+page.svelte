@@ -53,6 +53,51 @@
 	let paymentError = $state('');
 	let paymentLoading = $state(false);
 
+	// Promo code state
+	let promoInput = $state('');
+	let promoLoading = $state(false);
+	let promoError = $state('');
+
+	async function applyPromo() {
+		if (!promoInput.trim()) return;
+		promoError = '';
+		promoLoading = true;
+
+		try {
+			const response = await fetch('/api/cart/promo', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code: promoInput.trim() })
+			});
+
+			if (!response.ok) {
+				const err = await response.json().catch(() => ({ error: 'Invalid promo code' }));
+				throw new Error(err.error || 'Invalid promo code');
+			}
+
+			promoInput = '';
+			await invalidateAll();
+		} catch (err) {
+			promoError = err instanceof Error ? err.message : 'Failed to apply promo code';
+		} finally {
+			promoLoading = false;
+		}
+	}
+
+	async function removePromo(code: string) {
+		promoLoading = true;
+		try {
+			await fetch('/api/cart/promo', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code })
+			});
+			await invalidateAll();
+		} finally {
+			promoLoading = false;
+		}
+	}
+
 	async function submitShipping() {
 		shippingError = '';
 		shippingLoading = true;
@@ -362,6 +407,48 @@
 							/>
 						</div>
 					{/each}
+				</div>
+
+				<!-- Promo code -->
+				<div class="mt-4">
+					{#if cart.promotions && cart.promotions.length > 0}
+						<div class="mb-2 flex flex-wrap gap-2">
+							{#each cart.promotions as promo (promo.code)}
+								<span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+									{promo.code}
+									<button
+										onclick={() => removePromo(promo.code)}
+										disabled={promoLoading}
+										class="ml-1 text-green-500 hover:text-green-700"
+										aria-label="Remove promo code {promo.code}"
+									>
+										<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+										</svg>
+									</button>
+								</span>
+							{/each}
+						</div>
+					{/if}
+					<div class="flex gap-2">
+						<input
+							type="text"
+							bind:value={promoInput}
+							placeholder="Promo code"
+							class="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+							onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyPromo(); } }}
+						/>
+						<button
+							onclick={applyPromo}
+							disabled={promoLoading || !promoInput.trim()}
+							class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50"
+						>
+							{promoLoading ? '...' : 'Apply'}
+						</button>
+					</div>
+					{#if promoError}
+						<p class="mt-1 text-xs text-red-600">{promoError}</p>
+					{/if}
 				</div>
 
 				<Separator class="my-4" />

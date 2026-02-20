@@ -23,6 +23,23 @@ export const registerSchema = z.object({
 	last_name: z.string().max(100).optional()
 });
 
+// --- Password reset schemas ---
+
+export const forgotPasswordSchema = z.object({
+	email: emailSchema
+});
+
+export const resetPasswordSchema = z
+	.object({
+		token: z.string().min(1, 'Reset token is required'),
+		password: passwordSchema,
+		confirmPassword: z.string().min(1, 'Please confirm your password')
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: 'Passwords do not match',
+		path: ['confirmPassword']
+	});
+
 // --- Cart schemas ---
 
 export const addToCartSchema = z.object({
