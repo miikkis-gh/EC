@@ -34,6 +34,9 @@ jobs:
       - name: Storefront Tests
         run: pnpm --filter storefront test
 
+      - name: Backend Tests
+        run: pnpm --filter backend test:unit
+
   build:
     name: Build
     runs-on: ubuntu-latest

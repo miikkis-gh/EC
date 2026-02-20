@@ -19,9 +19,9 @@ export default defineConfig({
     databaseUrl: process.env.DATABASE_URL,
     redisUrl: process.env.REDIS_URL,
     http: {
-      storeCors: process.env.STORE_CORS!,
-      adminCors: process.env.ADMIN_CORS!,
-      authCors: process.env.AUTH_CORS!,
+      storeCors: requireEnv('STORE_CORS'),
+      adminCors: requireEnv('ADMIN_CORS'),
+      authCors: requireEnv('AUTH_CORS'),
       jwtSecret: requireEnv('JWT_SECRET'),
       cookieSecret: requireEnv('COOKIE_SECRET'),
     },
