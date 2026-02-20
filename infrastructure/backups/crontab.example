@@ -1,0 +1,11 @@
+# EC1 Postgres backup cron entries
+# Install with: crontab -e  (or merge into existing crontab)
+#
+# Set connection vars in the environment or use a .pgpass file.
+# Logs go to /var/log/ec1-backup.log.
+
+# Daily local backup at 3:00 AM
+0 3 * * * PGHOST=localhost PGPORT=5432 PGUSER=medusa PGDATABASE=ec1 /opt/ec1/infrastructure/backups/backup-postgres.sh >> /var/log/ec1-backup.log 2>&1
+
+# Weekly S3 upload on Sundays at 4:00 AM
+0 4 * * 0 PGHOST=localhost PGPORT=5432 PGUSER=medusa PGDATABASE=ec1 S3_BUCKET=ec1-backups /opt/ec1/infrastructure/backups/backup-postgres.sh >> /var/log/ec1-backup.log 2>&1

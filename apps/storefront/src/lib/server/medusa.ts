@@ -1,6 +1,8 @@
 import { env } from '$env/dynamic/private';
+import { createLogger } from './logger';
 
 const BACKEND_URL = env.MEDUSA_BACKEND_URL || 'http://localhost:9000';
+const logger = createLogger('medusa');
 
 // --- Types ---
 
@@ -168,10 +170,30 @@ export interface PaginatedResponse<T> {
 // --- Generic Fetcher ---
 
 const DEFAULT_TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 2;
 
 interface MedusaError {
 	message: string;
 	type: string;
+}
+
+const RETRYABLE_STATUS = new Set([502, 503, 504]);
+const SAFE_METHODS = new Set(['GET', 'HEAD']);
+
+function isRetryable(method: string, error: unknown, status?: number): boolean {
+	if (!SAFE_METHODS.has(method.toUpperCase())) return false;
+	if (status && RETRYABLE_STATUS.has(status)) return true;
+	// Timeout
+	if (error instanceof DOMException && error.name === 'AbortError') return true;
+	// Network error (fetch throws TypeError on connection failure)
+	if (error instanceof TypeError) return true;
+	return false;
+}
+
+async function retryDelay(attempt: number): Promise<void> {
+	const base = 500 * Math.pow(2, attempt - 1);
+	const jitter = Math.random() * base * 0.5;
+	await new Promise((resolve) => setTimeout(resolve, base + jitter));
 }
 
 export async function medusaRequest<T>(
@@ -189,33 +211,60 @@ export async function medusaRequest<T>(
 		headers['x-cart-id'] = cartId;
 	}
 
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+	const method = (options.method || 'GET').toUpperCase();
+	let lastError: Error | undefined;
 
-	try {
-		const response = await fetch(`${BACKEND_URL}/store${path}`, {
-			...options,
-			headers,
-			signal: controller.signal
-		});
+	for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-		if (!response.ok) {
-			const error: MedusaError = await response.json().catch(() => ({
-				message: `Request failed with status ${response.status}`,
-				type: 'unknown_error'
-			}));
-			throw new Error(error.message);
+		try {
+			const response = await fetch(`${BACKEND_URL}/store${path}`, {
+				...options,
+				headers,
+				signal: controller.signal
+			});
+
+			if (!response.ok) {
+				if (attempt < MAX_RETRIES && isRetryable(method, null, response.status)) {
+					logger.warn('Retrying request', { path, status: response.status, attempt: attempt + 1 });
+					clearTimeout(timeout);
+					await retryDelay(attempt + 1);
+					continue;
+				}
+
+				const error: MedusaError = await response.json().catch(() => ({
+					message: `Request failed with status ${response.status}`,
+					type: 'unknown_error'
+				}));
+				throw new Error(error.message);
+			}
+
+			return response.json();
+		} catch (error) {
+			clearTimeout(timeout);
+
+			if (error instanceof DOMException && error.name === 'AbortError') {
+				lastError = new Error(`Request to ${path} timed out after ${DEFAULT_TIMEOUT_MS}ms`);
+			} else if (error instanceof Error) {
+				lastError = error;
+			} else {
+				lastError = new Error(String(error));
+			}
+
+			if (attempt < MAX_RETRIES && isRetryable(method, error)) {
+				logger.warn('Retrying request', { path, error: lastError.message, attempt: attempt + 1 });
+				await retryDelay(attempt + 1);
+				continue;
+			}
+
+			throw lastError;
+		} finally {
+			clearTimeout(timeout);
 		}
-
-		return response.json();
-	} catch (error) {
-		if (error instanceof DOMException && error.name === 'AbortError') {
-			throw new Error(`Request to ${path} timed out after ${DEFAULT_TIMEOUT_MS}ms`);
-		}
-		throw error;
-	} finally {
-		clearTimeout(timeout);
 	}
+
+	throw lastError ?? new Error(`Request to ${path} failed after ${MAX_RETRIES + 1} attempts`);
 }
 
 // --- Products ---

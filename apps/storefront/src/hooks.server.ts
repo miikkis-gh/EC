@@ -37,7 +37,7 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
 
 	// Auth routes: stricter limit
 	if (path.startsWith('/login') || path.startsWith('/register') || path.startsWith('/api/auth')) {
-		const result = authLimiter.consume(ip);
+		const result = await authLimiter.consume(ip);
 		if (!result.allowed) {
 			return json(
 				{ error: 'Too many requests. Please try again later.' },
@@ -51,7 +51,7 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
 
 	// Checkout routes: moderate limit
 	if (path.startsWith('/api/checkout') || path.startsWith('/checkout')) {
-		const result = checkoutLimiter.consume(ip);
+		const result = await checkoutLimiter.consume(ip);
 		if (!result.allowed) {
 			return json(
 				{ error: 'Too many requests. Please try again later.' },
@@ -64,7 +64,7 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
 	}
 
 	// General limit for all routes
-	const result = generalLimiter.consume(ip);
+	const result = await generalLimiter.consume(ip);
 	if (!result.allowed) {
 		return json(
 			{ error: 'Too many requests. Please try again later.' },

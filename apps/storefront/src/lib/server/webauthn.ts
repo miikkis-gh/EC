@@ -11,6 +11,10 @@ import type {
 } from '@simplewebauthn/server';
 import { env } from '$env/dynamic/private';
 import { queryOne, queryMany, execute } from './db.js';
+import { getRedisClient } from './redis';
+import { createLogger } from './logger';
+
+const logger = createLogger('webauthn');
 
 // WebAuthn RP config
 function getRpId(): string {
@@ -25,35 +29,57 @@ function getOrigin(): string {
 	return env.WEBAUTHN_ORIGIN || 'http://localhost:5173';
 }
 
-// In-memory challenge store with 5-min TTL
-// NOTE: per-process only — replace with Redis if running multiple instances
-const challengeStore = new Map<string, { challenge: string; expiresAt: number }>();
+// --- Challenge store (Redis with in-memory fallback) ---
 
-function setChallenge(key: string, challenge: string): void {
-	challengeStore.set(key, {
-		challenge,
-		expiresAt: Date.now() + 5 * 60 * 1000
-	});
-}
+const CHALLENGE_TTL_SECONDS = 300; // 5 minutes
+const CHALLENGE_PREFIX = 'webauthn:challenge:';
 
-function getChallenge(key: string): string | null {
-	const entry = challengeStore.get(key);
-	if (!entry) return null;
-	challengeStore.delete(key);
-	if (Date.now() > entry.expiresAt) return null;
-	return entry.challenge;
-}
+// In-memory fallback
+const memoryStore = new Map<string, { challenge: string; expiresAt: number }>();
 
-// Periodically clean up expired challenges
-const challengeCleanupInterval = setInterval(() => {
+const cleanupInterval = setInterval(() => {
 	const now = Date.now();
-	for (const [key, entry] of challengeStore) {
-		if (now > entry.expiresAt) challengeStore.delete(key);
+	for (const [key, entry] of memoryStore) {
+		if (now > entry.expiresAt) memoryStore.delete(key);
 	}
 }, 60 * 1000);
 
-if (challengeCleanupInterval.unref) {
-	challengeCleanupInterval.unref();
+if (cleanupInterval.unref) {
+	cleanupInterval.unref();
+}
+
+async function setChallenge(key: string, challenge: string): Promise<void> {
+	const redis = getRedisClient();
+	if (redis) {
+		try {
+			await redis.set(`${CHALLENGE_PREFIX}${key}`, challenge, 'EX', CHALLENGE_TTL_SECONDS);
+			return;
+		} catch (err) {
+			logger.error('Redis setChallenge failed, using in-memory fallback', err);
+		}
+	}
+	memoryStore.set(key, {
+		challenge,
+		expiresAt: Date.now() + CHALLENGE_TTL_SECONDS * 1000
+	});
+}
+
+async function getChallenge(key: string): Promise<string | null> {
+	const redis = getRedisClient();
+	if (redis) {
+		try {
+			// GETDEL atomically gets and deletes — prevents replay
+			const challenge = await redis.getdel(`${CHALLENGE_PREFIX}${key}`);
+			return challenge;
+		} catch (err) {
+			logger.error('Redis getChallenge failed, using in-memory fallback', err);
+		}
+	}
+	const entry = memoryStore.get(key);
+	if (!entry) return null;
+	memoryStore.delete(key);
+	if (Date.now() > entry.expiresAt) return null;
+	return entry.challenge;
 }
 
 // --- Credential CRUD ---
@@ -152,7 +178,7 @@ export async function generatePasskeyRegistrationOptions(
 	});
 
 	const challengeKey = crypto.randomUUID();
-	setChallenge(challengeKey, options.challenge);
+	await setChallenge(challengeKey, options.challenge);
 
 	return { options, challengeKey };
 }
@@ -161,7 +187,7 @@ export async function verifyPasskeyRegistration(
 	challengeKey: string,
 	response: RegistrationResponseJSON
 ): Promise<{ verified: boolean; credentialId?: string; publicKey?: Uint8Array; counter?: number; transports?: AuthenticatorTransportFuture[] }> {
-	const expectedChallenge = getChallenge(challengeKey);
+	const expectedChallenge = await getChallenge(challengeKey);
 	if (!expectedChallenge) {
 		return { verified: false };
 	}
@@ -199,7 +225,7 @@ export async function generatePasskeyAuthenticationOptions(): Promise<{
 	});
 
 	const challengeKey = crypto.randomUUID();
-	setChallenge(challengeKey, options.challenge);
+	await setChallenge(challengeKey, options.challenge);
 
 	return { options, challengeKey };
 }
@@ -208,7 +234,7 @@ export async function verifyPasskeyAuthentication(
 	challengeKey: string,
 	response: AuthenticationResponseJSON
 ): Promise<{ verified: boolean; credentialId?: string }> {
-	const expectedChallenge = getChallenge(challengeKey);
+	const expectedChallenge = await getChallenge(challengeKey);
 	if (!expectedChallenge) {
 		return { verified: false };
 	}
