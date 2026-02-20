@@ -92,6 +92,6 @@ export const actions: Actions = {
 		const session = await createSession(token, user.id, medusaToken);
 		setSessionTokenCookie(event, token, session.expiresAt);
 
-		redirect(302, '/account');
+		redirect(302, '/welcome');
 	}
 };

@@ -91,6 +91,25 @@ export function cartFlyIn(element: Element): gsap.core.Tween {
 	});
 }
 
+export function stepTransition(outEl: Element, inEl: Element): gsap.core.Timeline {
+	const tl = gsap.timeline();
+	tl.to(outEl, { x: -40, opacity: 0, duration: 0.25, ease: 'power2.in' });
+	tl.fromTo(inEl, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: 'power2.out' });
+	return tl;
+}
+
+export function celebrationReveal(container: Element): gsap.core.Tween {
+	const children = container.querySelectorAll('[data-reveal]');
+	gsap.set(children, { y: 20, opacity: 0 });
+	return gsap.to(children, {
+		y: 0,
+		opacity: 1,
+		duration: 0.5,
+		stagger: 0.12,
+		ease: 'back.out(1.4)'
+	});
+}
+
 export const pageTransition = {
 	in(element: Element): gsap.core.Tween {
 		return gsap.from(element, {
