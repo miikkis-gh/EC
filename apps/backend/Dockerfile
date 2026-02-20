@@ -29,4 +29,4 @@ USER medusa
 EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:9000/health || exit 1
-CMD ["pnpm", "--filter", "backend", "run", "start"]
+CMD ["sh", "-c", "cd /app/apps/backend && npx medusa db:migrate && pnpm --filter backend run start"]
