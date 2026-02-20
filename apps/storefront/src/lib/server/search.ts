@@ -1,7 +1,7 @@
 import { MeiliSearch } from 'meilisearch';
 import { env } from '$env/dynamic/private';
 
-const client = new MeiliSearch({
+export const meiliClient = new MeiliSearch({
 	host: env.MEILISEARCH_HOST || 'http://localhost:7700',
 	apiKey: env.MEILISEARCH_API_KEY || ''
 });
@@ -30,7 +30,7 @@ export async function searchProducts(
 	options?: { limit?: number }
 ): Promise<SearchResult> {
 	try {
-		const results = await client.index(PRODUCTS_INDEX).search<SearchHit>(query, {
+		const results = await meiliClient.index(PRODUCTS_INDEX).search<SearchHit>(query, {
 			limit: options?.limit || 10,
 			attributesToRetrieve: [
 				'id',
