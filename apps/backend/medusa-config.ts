@@ -25,6 +25,12 @@ export default defineConfig({
       jwtSecret: requireEnv('JWT_SECRET'),
       cookieSecret: requireEnv('COOKIE_SECRET'),
     },
+    ...(process.env.COOKIE_SECURE === 'false' && {
+      cookieOptions: {
+        secure: false,
+        sameSite: 'lax' as const,
+      },
+    }),
   },
   modules: [
     // Payment — Stripe
