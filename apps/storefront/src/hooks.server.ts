@@ -5,6 +5,7 @@ import { validateSessionToken, setSessionTokenCookie } from '$server/auth';
 import { generalLimiter, authLimiter, checkoutLimiter } from '$server/rate-limit';
 import { dev } from '$app/environment';
 import * as Sentry from '@sentry/sveltekit';
+import '$server/env'; // validate required env vars at startup
 
 // --- Sentry init (no-op if DSN not set) ---
 

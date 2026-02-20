@@ -21,7 +21,5 @@
     "lint": "pnpm --filter './apps/**' run lint",
     "check": "pnpm --filter './apps/**' run check"
   },
-  "dependencies": {
-    "@stripe/stripe-js": "^8.7.0"
-  }
+  "dependencies": {}
 }
