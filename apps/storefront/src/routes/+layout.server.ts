@@ -16,7 +16,13 @@ export const load: LayoutServerLoad = async ({ cookies, locals }) => {
 			try {
 				const result = await createCart();
 				cart = result.cart;
-				cookies.set('cart_id', cart.id, { path: '/', maxAge: 60 * 60 * 24 * 30 });
+				cookies.set('cart_id', cart.id, {
+					path: '/',
+					httpOnly: true,
+					sameSite: 'lax',
+					secure: import.meta.env.PROD,
+					maxAge: 60 * 60 * 24 * 30
+				});
 			} catch {
 				// Backend unreachable — continue without a cart
 			}

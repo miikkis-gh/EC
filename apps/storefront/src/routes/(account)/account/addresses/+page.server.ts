@@ -38,9 +38,9 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const addressId = formData.get('address_id') as string;
-		if (!addressId) {
-			return fail(400, { error: 'Address ID is required' });
+		const addressId = formData.get('address_id');
+		if (!addressId || typeof addressId !== 'string' || !addressId.startsWith('addr_')) {
+			return fail(400, { error: 'Invalid address ID' });
 		}
 
 		formData.delete('address_id');
@@ -68,9 +68,9 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const addressId = formData.get('address_id') as string;
-		if (!addressId) {
-			return fail(400, { error: 'Address ID is required' });
+		const addressId = formData.get('address_id');
+		if (!addressId || typeof addressId !== 'string' || !addressId.startsWith('addr_')) {
+			return fail(400, { error: 'Invalid address ID' });
 		}
 
 		try {

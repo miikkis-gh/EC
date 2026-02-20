@@ -1,14 +1,27 @@
 export const PRODUCTS_INDEX = "products"
 
-let _client: any | null = null
+interface MeiliSearchClient {
+  getIndex(uid: string): Promise<unknown>
+  createIndex(uid: string, options: { primaryKey: string }): Promise<unknown>
+  index(uid: string): {
+    addDocuments(documents: ProductDocument[]): Promise<unknown>
+    deleteDocument(id: string): Promise<unknown>
+    updateSearchableAttributes(attrs: string[]): Promise<unknown>
+    updateFilterableAttributes(attrs: string[]): Promise<unknown>
+    updateSortableAttributes(attrs: string[]): Promise<unknown>
+    updateRankingRules(rules: string[]): Promise<unknown>
+  }
+}
 
-async function getClient() {
+let _client: MeiliSearchClient | null = null
+
+async function getClient(): Promise<MeiliSearchClient> {
   if (!_client) {
     const { MeiliSearch } = await import("meilisearch")
     _client = new MeiliSearch({
       host: process.env.MEILISEARCH_HOST || "http://localhost:7700",
       apiKey: process.env.MEILISEARCH_API_KEY || "",
-    })
+    }) as MeiliSearchClient
   }
   return _client
 }
@@ -70,7 +83,21 @@ export interface ProductDocument {
   created_at: string
 }
 
-export function productToDocument(product: any): ProductDocument {
+interface ProductInput {
+  id: string
+  title?: string | null
+  handle?: string | null
+  description?: string | null
+  thumbnail?: string | null
+  status?: string | null
+  collection?: { id: string; title: string; handle: string } | null
+  categories?: { name: string }[] | null
+  tags?: { value: string }[] | null
+  variants?: { title: string }[] | null
+  created_at?: string | Date | null
+}
+
+export function productToDocument(product: ProductInput): ProductDocument {
   return {
     id: product.id,
     title: product.title || "",
@@ -81,9 +108,9 @@ export function productToDocument(product: any): ProductDocument {
     collection_id: product.collection?.id || null,
     collection_title: product.collection?.title || null,
     collection_handle: product.collection?.handle || null,
-    categories: (product.categories || []).map((c: any) => c.name),
-    tags: (product.tags || []).map((t: any) => t.value),
-    variant_titles: (product.variants || []).map((v: any) => v.title),
-    created_at: product.created_at || new Date().toISOString(),
+    categories: (product.categories || []).map((c) => c.name),
+    tags: (product.tags || []).map((t) => t.value),
+    variant_titles: (product.variants || []).map((v) => v.title),
+    created_at: product.created_at instanceof Date ? product.created_at.toISOString() : (product.created_at || new Date().toISOString()),
   }
 }

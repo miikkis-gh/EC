@@ -11,6 +11,7 @@
 			count: number;
 			page: number;
 			pageCount: number;
+			loadError: boolean;
 		};
 	}
 
@@ -25,12 +26,19 @@
 <svelte:head>
 	<title>Products — EC1</title>
 	<meta name="description" content="Browse our full product catalog." />
+	<link rel="canonical" href="/products{data.page > 1 ? `?page=${data.page}` : ''}" />
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 	<Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Products' }]} />
 
 	<h1 bind:this={headingEl} class="mb-8 font-heading text-3xl font-bold text-neutral-900">Products</h1>
+
+	{#if data.loadError}
+		<div class="mb-8 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+			Products could not be loaded right now. Please try refreshing the page.
+		</div>
+	{/if}
 
 	<div class="flex gap-8">
 		<FilterSidebar collections={data.collections} />

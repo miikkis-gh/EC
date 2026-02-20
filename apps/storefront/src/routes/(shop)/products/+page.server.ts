@@ -9,7 +9,7 @@ const sortMap: Record<string, string> = {
 };
 
 export const load: PageServerLoad = async ({ url }) => {
-	const page = Number(url.searchParams.get('page')) || 1;
+	const page = Math.max(Number(url.searchParams.get('page')) || 1, 1);
 	const sort = url.searchParams.get('sort') || 'newest';
 	const collectionIds = url.searchParams.getAll('collection_id');
 	const limit = 12;
@@ -31,7 +31,8 @@ export const load: PageServerLoad = async ({ url }) => {
 			collections: collectionsData.collections,
 			count: productsData.count,
 			page,
-			pageCount: Math.ceil(productsData.count / limit)
+			pageCount: Math.ceil(productsData.count / limit),
+			loadError: false
 		};
 	} catch {
 		return {
@@ -39,7 +40,8 @@ export const load: PageServerLoad = async ({ url }) => {
 			collections: [],
 			count: 0,
 			page: 1,
-			pageCount: 0
+			pageCount: 0,
+			loadError: true
 		};
 	}
 };

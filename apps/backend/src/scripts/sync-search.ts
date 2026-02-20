@@ -21,7 +21,7 @@ export default async function syncSearch({ container }: ExecArgs) {
 
   while (true) {
     const [products, count] = await productService.listAndCountProducts(
-      { status: "published" as any },
+      { status: "published" as const },
       {
         relations: ["variants", "collection", "categories", "tags"],
         take: BATCH_SIZE,
