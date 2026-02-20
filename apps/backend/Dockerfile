@@ -11,7 +11,7 @@ RUN pnpm install --frozen-lockfile --filter backend...
 # Build
 RUN pnpm --filter backend run build
 # Compile config for production (TypeScript not available at runtime)
-RUN cp apps/backend/.medusa/server/medusa-config.js apps/backend/medusa-config.js
+RUN cp -r apps/backend/.medusa/server/* apps/backend/
 
 # Stage 2: Production
 FROM node:20-alpine
