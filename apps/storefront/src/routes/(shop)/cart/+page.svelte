@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CartItem from '$components/shop/CartItem.svelte';
 	import PriceDisplay from '$components/shop/PriceDisplay.svelte';
+	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
 	import { cart } from '$stores/cart';
 </script>
 
@@ -9,6 +10,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+	<Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Cart' }]} />
 	<h1 class="mb-8 font-heading text-3xl font-bold text-neutral-900">Shopping Cart</h1>
 
 	{#if $cart?.items && $cart.items.length > 0}

@@ -1,6 +1,9 @@
 <script lang="ts">
 	import PriceDisplay from '$components/shop/PriceDisplay.svelte';
 	import QuantitySelector from '$components/shop/QuantitySelector.svelte';
+	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
+	import ProductGallery from '$components/shop/ProductGallery.svelte';
+	import ReviewStars from '$components/shop/ReviewStars.svelte';
 	import { addToCartOptimistic } from '$stores/cart';
 	import { fadeInUp } from '$utils/animations';
 	import { buildProductJsonLd } from '$utils/seo';
@@ -35,6 +38,18 @@
 		'eur'
 	);
 
+	const breadcrumbItems = $derived(() => {
+		const items: { label: string; href?: string }[] = [
+			{ label: 'Home', href: '/' },
+			{ label: 'Products', href: '/products' }
+		];
+		if (product.collection) {
+			items.push({ label: product.collection.title, href: `/collections/${product.collection.handle}` });
+		}
+		items.push({ label: product.title });
+		return items;
+	});
+
 	async function handleAddToCart() {
 		if (!selectedVariant) return;
 		adding = true;
@@ -55,40 +70,15 @@
 </svelte:head>
 
 <div bind:this={pageEl} class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+	<Breadcrumbs items={breadcrumbItems()} />
+
 	<div class="grid gap-12 lg:grid-cols-2">
 		<!-- Images -->
-		<div class="space-y-4">
-			<div class="aspect-square overflow-hidden rounded-2xl bg-neutral-100">
-				{#if product.thumbnail}
-					<img
-						src={product.thumbnail}
-						alt={product.title}
-						class="h-full w-full object-cover"
-					/>
-				{:else}
-					<div class="flex h-full items-center justify-center text-neutral-400">
-						<svg class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-						</svg>
-					</div>
-				{/if}
-			</div>
-
-			{#if product.images && product.images.length > 1}
-				<div class="grid grid-cols-4 gap-2">
-					{#each product.images as image (image.id)}
-						<div class="aspect-square overflow-hidden rounded-lg bg-neutral-100">
-							<img
-								src={image.url}
-								alt={product.title}
-								class="h-full w-full object-cover"
-								loading="lazy"
-							/>
-						</div>
-					{/each}
-				</div>
-			{/if}
-		</div>
+		<ProductGallery
+			images={product.images ?? []}
+			thumbnail={product.thumbnail}
+			alt={product.title}
+		/>
 
 		<!-- Info -->
 		<div>
@@ -102,6 +92,7 @@
 			{/if}
 
 			<h1 class="mt-2 font-heading text-3xl font-bold text-neutral-900">{product.title}</h1>
+			<ReviewStars rating={4.5} count={24} class="mt-2" />
 
 			<PriceDisplay
 				amount={price}

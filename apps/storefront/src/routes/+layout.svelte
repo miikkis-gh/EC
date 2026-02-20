@@ -2,6 +2,7 @@
 	import '../app.css';
 	import '@fontsource-variable/inter';
 	import '@fontsource-variable/plus-jakarta-sans';
+	import AnnouncementBar from '$components/layout/AnnouncementBar.svelte';
 	import Header from '$components/layout/Header.svelte';
 	import Footer from '$components/layout/Footer.svelte';
 	import MobileMenu from '$components/layout/MobileMenu.svelte';
@@ -62,6 +63,10 @@
 {/if}
 
 <div class="flex min-h-screen flex-col">
+	<AnnouncementBar
+		message="Free shipping on orders over €50"
+		link={{ href: '/products', label: 'Shop now' }}
+	/>
 	<Header
 		user={data.user}
 		onToggleMobileMenu={() => mobileMenuOpen = !mobileMenuOpen}

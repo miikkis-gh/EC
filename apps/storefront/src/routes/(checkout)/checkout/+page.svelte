@@ -6,6 +6,7 @@
 	import { Separator } from '$ui/separator';
 	import PriceDisplay from '$components/shop/PriceDisplay.svelte';
 	import PaymentForm from '$components/shop/PaymentForm.svelte';
+	import CheckoutSteps from '$components/shop/CheckoutSteps.svelte';
 	import { env } from '$env/dynamic/public';
 	import type { Cart, ShippingOption } from '$server/medusa';
 
@@ -145,17 +146,13 @@
 	<h1 class="mb-8 font-heading text-3xl font-bold text-neutral-900">Checkout</h1>
 
 	<!-- Steps indicator -->
-	<div class="mb-8 flex items-center gap-2 text-sm">
-		<span class={step === 'shipping' ? 'font-semibold text-neutral-900' : 'text-neutral-400'}>
-			1. Shipping
-		</span>
-		<svg class="h-4 w-4 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-			<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-		</svg>
-		<span class={step === 'payment' ? 'font-semibold text-neutral-900' : 'text-neutral-400'}>
-			2. Payment
-		</span>
-	</div>
+	<CheckoutSteps
+		steps={[
+			{ key: 'shipping', label: 'Shipping' },
+			{ key: 'payment', label: 'Payment' }
+		]}
+		currentStep={step}
+	/>
 
 	<div class="grid gap-8 lg:grid-cols-5">
 		<!-- Main form area -->

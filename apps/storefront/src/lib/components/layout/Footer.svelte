@@ -1,6 +1,6 @@
 <footer class="border-t border-neutral-200 bg-neutral-50">
 	<div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-		<div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+		<div class="grid grid-cols-1 gap-8 md:grid-cols-4">
 			<!-- Brand -->
 			<div>
 				<a href="/" class="font-heading text-lg font-bold text-neutral-900">EC1</a>
@@ -21,6 +21,28 @@
 					<li>
 						<a href="/collections" class="text-sm text-neutral-500 transition-colors hover:text-neutral-900">
 							Collections
+						</a>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Company Links -->
+			<div>
+				<h3 class="text-sm font-semibold text-neutral-900">Company</h3>
+				<ul class="mt-3 space-y-2">
+					<li>
+						<a href="/about" class="text-sm text-neutral-500 transition-colors hover:text-neutral-900">
+							About
+						</a>
+					</li>
+					<li>
+						<a href="/blog" class="text-sm text-neutral-500 transition-colors hover:text-neutral-900">
+							Blog
+						</a>
+					</li>
+					<li>
+						<a href="/contact" class="text-sm text-neutral-500 transition-colors hover:text-neutral-900">
+							Contact
 						</a>
 					</li>
 				</ul>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cartCount, openCart } from '$stores/cart';
+	import Navigation from '$components/layout/Navigation.svelte';
 	import type { AuthUser } from '$server/auth';
 
 	interface Props {
@@ -9,6 +10,13 @@
 	}
 
 	let { user, onToggleMobileMenu, onToggleSearch }: Props = $props();
+
+	const navItems = [
+		{ label: 'Products', href: '/products' },
+		{ label: 'Collections', href: '/collections' },
+		{ label: 'About', href: '/about' },
+		{ label: 'Contact', href: '/contact' }
+	];
 </script>
 
 <header class="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur-lg">
@@ -19,20 +27,7 @@
 		</a>
 
 		<!-- Desktop Nav -->
-		<nav class="hidden items-center gap-8 md:flex">
-			<a
-				href="/products"
-				class="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
-			>
-				Products
-			</a>
-			<a
-				href="/collections"
-				class="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
-			>
-				Collections
-			</a>
-		</nav>
+		<Navigation items={navItems} />
 
 		<!-- Actions -->
 		<div class="flex items-center gap-2">

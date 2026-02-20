@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ProductGrid from '$components/shop/ProductGrid.svelte';
+	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
 	import { fadeInUp } from '$utils/animations';
 
 	interface Props {
@@ -25,6 +26,12 @@
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+	<Breadcrumbs items={[
+		{ label: 'Home', href: '/' },
+		{ label: 'Collections', href: '/collections' },
+		{ label: data.collection.title }
+	]} />
+
 	<h1 bind:this={headingEl} class="mb-8 font-heading text-3xl font-bold text-neutral-900">{data.collection.title}</h1>
 
 	<ProductGrid products={data.products} />

@@ -41,6 +41,33 @@
 						Collections
 					</a>
 				</li>
+				<li>
+					<a
+						href="/about"
+						onclick={onclose}
+						class="block rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+					>
+						About
+					</a>
+				</li>
+				<li>
+					<a
+						href="/blog"
+						onclick={onclose}
+						class="block rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+					>
+						Blog
+					</a>
+				</li>
+				<li>
+					<a
+						href="/contact"
+						onclick={onclose}
+						class="block rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+					>
+						Contact
+					</a>
+				</li>
 				<li class="border-t border-neutral-100 pt-2">
 					{#if user}
 						<a

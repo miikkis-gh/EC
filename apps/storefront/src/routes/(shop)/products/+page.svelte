@@ -1,10 +1,13 @@
 <script lang="ts">
 	import ProductGrid from '$components/shop/ProductGrid.svelte';
+	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
+	import FilterSidebar from '$components/shop/FilterSidebar.svelte';
 	import { fadeInUp } from '$utils/animations';
 
 	interface Props {
 		data: {
 			products: import('$server/medusa').Product[];
+			collections: import('$server/medusa').Collection[];
 			count: number;
 			page: number;
 			pageCount: number;
@@ -25,41 +28,49 @@
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+	<Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Products' }]} />
+
 	<h1 bind:this={headingEl} class="mb-8 font-heading text-3xl font-bold text-neutral-900">Products</h1>
 
-	<ProductGrid products={data.products} />
+	<div class="flex gap-8">
+		<FilterSidebar collections={data.collections} />
 
-	<!-- Pagination -->
-	{#if data.pageCount > 1}
-		<nav class="mt-12 flex items-center justify-center gap-2" aria-label="Pagination">
-			{#if data.page > 1}
-				<a
-					href="/products?page={data.page - 1}"
-					class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
-				>
-					Previous
-				</a>
+		<div class="min-w-0 flex-1">
+			<ProductGrid products={data.products} />
+
+			<!-- Pagination -->
+			{#if data.pageCount > 1}
+				<nav class="mt-12 flex items-center justify-center gap-2" aria-label="Pagination">
+					{#if data.page > 1}
+						<a
+							href="/products?page={data.page - 1}"
+							class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+						>
+							Previous
+						</a>
+					{/if}
+
+					{#each Array.from({ length: data.pageCount }, (_, i) => i + 1) as pageNum}
+						<a
+							href="/products?page={pageNum}"
+							class="rounded-lg px-4 py-2 text-sm {pageNum === data.page
+								? 'bg-primary-600 text-white'
+								: 'border border-neutral-200 text-neutral-700 hover:bg-neutral-50'}"
+						>
+							{pageNum}
+						</a>
+					{/each}
+
+					{#if data.page < data.pageCount}
+						<a
+							href="/products?page={data.page + 1}"
+							class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+						>
+							Next
+						</a>
+					{/if}
+				</nav>
 			{/if}
-
-			{#each Array.from({ length: data.pageCount }, (_, i) => i + 1) as pageNum}
-				<a
-					href="/products?page={pageNum}"
-					class="rounded-lg px-4 py-2 text-sm {pageNum === data.page
-						? 'bg-primary-600 text-white'
-						: 'border border-neutral-200 text-neutral-700 hover:bg-neutral-50'}"
-				>
-					{pageNum}
-				</a>
-			{/each}
-
-			{#if data.page < data.pageCount}
-				<a
-					href="/products?page={data.page + 1}"
-					class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
-				>
-					Next
-				</a>
-			{/if}
-		</nav>
-	{/if}
+		</div>
+	</div>
 </div>
