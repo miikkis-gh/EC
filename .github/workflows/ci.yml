@@ -83,9 +83,14 @@ jobs:
     steps:
       - name: Trigger Coolify Staging Deploy
         run: |
-          curl -sf -X POST "${{ secrets.COOLIFY_STAGING_WEBHOOK_URL }}" \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}" \
-            || echo "::warning::Coolify staging webhook failed"
+          HTTP_CODE=$(curl -s -o /tmp/response.txt -w "%{http_code}" -X POST "${{ secrets.COOLIFY_STAGING_WEBHOOK_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}")
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "Deploy triggered successfully (HTTP $HTTP_CODE)"
+          else
+            echo "::error::Coolify staging deploy failed with HTTP $HTTP_CODE: $(cat /tmp/response.txt)"
+            exit 1
+          fi
 
   deploy-production:
     name: Deploy to Production
@@ -100,7 +105,6 @@ jobs:
           if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
             echo "Deploy triggered successfully (HTTP $HTTP_CODE)"
           else
-            echo "::warning::Coolify production webhook failed with HTTP $HTTP_CODE"
-            cat /tmp/response.txt
-            exit 0
+            echo "::error::Coolify production deploy failed with HTTP $HTTP_CODE: $(cat /tmp/response.txt)"
+            exit 1
           fi
