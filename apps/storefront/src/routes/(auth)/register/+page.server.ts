@@ -2,7 +2,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { getUserByEmail, createUser, updateUserMedusaCustomerId } from '$server/user';
 import { hashPassword } from '$server/password';
-import { registerMedusaAuth, createMedusaCustomer } from '$server/medusa';
+import { registerMedusaAuth, createMedusaCustomer, loginMedusa } from '$server/medusa';
 import {
 	generateSessionToken,
 	createSession,
@@ -79,6 +79,15 @@ export const actions: Actions = {
 			console.error('Medusa customer profile creation failed:', error);
 		}
 
+		// Log in to get a proper session token (registration token is single-use)
+		let sessionMedusaToken: string | undefined;
+		try {
+			const loginResult = await loginMedusa(email, password);
+			sessionMedusaToken = loginResult.token;
+		} catch {
+			// Non-fatal: account still works, Medusa token can be obtained on next login
+		}
+
 		// Create local user
 		const passwordHash = await hashPassword(password);
 		const user = await createUser(email, passwordHash, medusaCustomerId);
@@ -89,7 +98,7 @@ export const actions: Actions = {
 		}
 
 		const token = generateSessionToken();
-		const session = await createSession(token, user.id, medusaToken);
+		const session = await createSession(token, user.id, sessionMedusaToken);
 		setSessionTokenCookie(event, token, session.expiresAt);
 
 		redirect(302, '/welcome');
