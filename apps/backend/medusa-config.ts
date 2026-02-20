@@ -12,7 +12,8 @@ function requireEnv(name: string): string {
 
 export default defineConfig({
   admin: {
-    disable: true,
+    disable: false,
+    backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:9000",
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
