@@ -8,12 +8,17 @@ export const POST: RequestHandler = async ({ cookies }) => {
 		return json({ error: 'No cart found' }, { status: 400 });
 	}
 
-	const result = await completeCart(cartId);
+	try {
+		const result = await completeCart(cartId);
 
-	// Clear the cart cookie after successful order
-	if (result.type === 'order') {
-		cookies.delete('cart_id', { path: '/' });
+		// Clear the cart cookie after successful order
+		if (result.type === 'order') {
+			cookies.delete('cart_id', { path: '/' });
+		}
+
+		return json(result);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Failed to complete order';
+		return json({ error: message }, { status: 500 });
 	}
-
-	return json(result);
 };

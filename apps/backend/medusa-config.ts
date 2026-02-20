@@ -2,6 +2,14 @@ import { defineConfig, loadEnv } from '@medusajs/framework/utils'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`)
+  }
+  return value
+}
+
 export default defineConfig({
   admin: {
     disable: true,
@@ -13,8 +21,8 @@ export default defineConfig({
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
       authCors: process.env.AUTH_CORS!,
-      jwtSecret: process.env.JWT_SECRET || 'supersecret-change-in-prod',
-      cookieSecret: process.env.COOKIE_SECRET || 'supersecret-change-in-prod',
+      jwtSecret: requireEnv('JWT_SECRET'),
+      cookieSecret: requireEnv('COOKIE_SECRET'),
     },
   },
   modules: [

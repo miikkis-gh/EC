@@ -1,3 +1,12 @@
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 function formatPrice(amount: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -13,14 +22,15 @@ export function orderConfirmationEmail(order: {
   shipping_address: { first_name: string } | null
   currency_code: string
 }) {
-  const name = order.shipping_address?.first_name || "there"
+  const name = escapeHtml(order.shipping_address?.first_name || "there")
+  const displayId = escapeHtml(String(order.display_id))
 
   const itemRows = order.items
     .map(
       (item) => `
       <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #eee;">
-          ${item.title}
+          ${escapeHtml(item.title)}
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: center;">
           ${item.quantity}
@@ -32,7 +42,7 @@ export function orderConfirmationEmail(order: {
     )
     .join("")
 
-  const storeUrl = process.env.PUBLIC_STORE_URL || "http://localhost:5173"
+  const storeUrl = encodeURI(process.env.PUBLIC_STORE_URL || "http://localhost:5173")
 
   return `
     <!DOCTYPE html>
@@ -48,7 +58,7 @@ export function orderConfirmationEmail(order: {
             Order Confirmed
           </h1>
           <p style="color: #6b7280; margin: 0 0 32px;">
-            Hi ${name}, thanks for your order #${order.display_id}!
+            Hi ${name}, thanks for your order #${displayId}!
           </p>
 
           <table style="width: 100%; border-collapse: collapse;">

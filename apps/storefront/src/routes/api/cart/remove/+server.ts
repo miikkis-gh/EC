@@ -3,7 +3,14 @@ import type { RequestHandler } from './$types';
 import { removeLineItem, getCart } from '$server/medusa';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-	const { lineItemId } = await request.json();
+	let body: { lineItemId?: string };
+	try {
+		body = await request.json();
+	} catch {
+		return json({ error: 'Invalid request body' }, { status: 400 });
+	}
+
+	const { lineItemId } = body;
 	const cartId = cookies.get('cart_id');
 
 	if (!cartId) {

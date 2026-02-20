@@ -6,30 +6,43 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
 	const paymentIntent = url.searchParams.get('payment_intent');
 	const redirectStatus = url.searchParams.get('redirect_status');
 
-	if (!paymentIntent) {
+	// Require both a payment_intent and a valid redirect_status from Stripe
+	if (!paymentIntent || !redirectStatus) {
+		redirect(302, '/cart');
+	}
+
+	// Only allow known Stripe redirect statuses
+	const validStatuses = ['succeeded', 'processing', 'requires_payment_method'];
+	if (!validStatuses.includes(redirectStatus)) {
 		redirect(302, '/cart');
 	}
 
 	const cartId = cookies.get('cart_id');
 
-	if (cartId) {
-		try {
-			const result = await completeCart(cartId);
-			if (result.type === 'order') {
-				cookies.delete('cart_id', { path: '/' });
-				return {
-					order: result.data as Record<string, unknown>,
-					status: redirectStatus ?? 'succeeded'
-				};
-			}
-		} catch {
-			// Cart may already be completed
-		}
+	// No cart cookie means we can't verify this payment belongs to the current session
+	if (!cartId) {
+		// Cart was already completed in a prior visit — show success if Stripe says so
+		return {
+			order: null,
+			status: redirectStatus
+		};
 	}
 
-	// If no cart (already completed), just show success based on redirect status
+	try {
+		const result = await completeCart(cartId);
+		if (result.type === 'order') {
+			cookies.delete('cart_id', { path: '/' });
+			return {
+				order: result.data as Record<string, unknown>,
+				status: redirectStatus
+			};
+		}
+	} catch {
+		// Cart may already be completed
+	}
+
 	return {
 		order: null,
-		status: redirectStatus ?? 'succeeded'
+		status: redirectStatus
 	};
 };
