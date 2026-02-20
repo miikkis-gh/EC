@@ -26,6 +26,7 @@ function getOrigin(): string {
 }
 
 // In-memory challenge store with 5-min TTL
+// NOTE: per-process only — replace with Redis if running multiple instances
 const challengeStore = new Map<string, { challenge: string; expiresAt: number }>();
 
 function setChallenge(key: string, challenge: string): void {
@@ -44,12 +45,16 @@ function getChallenge(key: string): string | null {
 }
 
 // Periodically clean up expired challenges
-setInterval(() => {
+const challengeCleanupInterval = setInterval(() => {
 	const now = Date.now();
 	for (const [key, entry] of challengeStore) {
 		if (now > entry.expiresAt) challengeStore.delete(key);
 	}
 }, 60 * 1000);
+
+if (challengeCleanupInterval.unref) {
+	challengeCleanupInterval.unref();
+}
 
 // --- Credential CRUD ---
 

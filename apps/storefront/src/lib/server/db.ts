@@ -2,7 +2,10 @@ import pg from 'pg';
 import { env } from '$env/dynamic/private';
 
 const pool = new pg.Pool({
-	connectionString: env.DATABASE_URL
+	connectionString: env.DATABASE_URL,
+	max: 10,
+	idleTimeoutMillis: 30_000,
+	connectionTimeoutMillis: 5_000
 });
 
 export async function queryOne<T>(text: string, values?: unknown[]): Promise<T | null> {

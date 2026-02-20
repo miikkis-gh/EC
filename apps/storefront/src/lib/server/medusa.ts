@@ -223,11 +223,16 @@ export async function medusaRequest<T>(
 // --- Regions ---
 
 let cachedRegionId: string | null = null;
+let regionCachedAt = 0;
+const REGION_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export async function getDefaultRegionId(): Promise<string> {
-	if (cachedRegionId) return cachedRegionId;
+	if (cachedRegionId && Date.now() - regionCachedAt < REGION_CACHE_TTL_MS) {
+		return cachedRegionId;
+	}
 	const data = await medusaRequest<{ regions: { id: string }[] }>('/regions?limit=1');
 	cachedRegionId = data.regions[0]?.id ?? '';
+	regionCachedAt = Date.now();
 	return cachedRegionId;
 }
 

@@ -1,6 +1,10 @@
 /**
  * In-memory sliding window rate limiter.
  * No external dependencies — uses a Map with automatic cleanup.
+ *
+ * NOTE: State is per-process. If running multiple instances behind a load
+ * balancer, replace the Map with a shared store (e.g. Redis) so limits
+ * are enforced globally.
  */
 
 interface RateLimitEntry {
