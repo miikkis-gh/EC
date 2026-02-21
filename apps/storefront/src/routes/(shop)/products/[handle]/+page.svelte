@@ -14,6 +14,7 @@
 	import { fadeInUp } from '$utils/animations';
 	import { buildProductJsonLd } from '$utils/seo';
 	import { page } from '$app/stores';
+	import { toast } from 'svelte-sonner';
 	import type { Product } from '$server/medusa';
 	import type { Review, ReviewStats } from '$server/reviews';
 
@@ -77,6 +78,26 @@
 			await addToCartOptimistic(selectedVariant.id, quantity);
 		} finally {
 			adding = false;
+		}
+	}
+
+	async function handleShare() {
+		const shareData = { title: product.title, url: $page.url.href };
+		try {
+			if (navigator.share) {
+				await navigator.share(shareData);
+			} else {
+				await navigator.clipboard.writeText($page.url.href);
+				toast.success('Link copied to clipboard');
+			}
+		} catch (e) {
+			if (e instanceof DOMException && e.name === 'AbortError') return;
+			try {
+				await navigator.clipboard.writeText($page.url.href);
+				toast.success('Link copied to clipboard');
+			} catch {
+				toast.error('Unable to share');
+			}
 		}
 	}
 </script>
@@ -166,6 +187,15 @@
 					{/if}
 				</button>
 				<WishlistButton productId={product.id} class="border border-neutral-200 p-2.5" />
+				<button
+					onclick={handleShare}
+					class="rounded-full border border-neutral-200 p-2.5 text-neutral-400 transition-colors hover:text-neutral-600"
+					aria-label="Share product"
+				>
+					<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+					</svg>
+				</button>
 			</div>
 		</div>
 	</div>

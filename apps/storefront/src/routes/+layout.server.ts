@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { getCart, createCart } from '$server/medusa';
+import { getCart, createCart, getCollections } from '$server/medusa';
 import { getUserWishlistProductIds } from '$server/wishlist';
 import { env } from '$env/dynamic/public';
 
@@ -39,10 +39,19 @@ export const load: LayoutServerLoad = async ({ cookies, locals }) => {
 		}
 	}
 
+	let collections: { id: string; title: string; handle: string }[] = [];
+	try {
+		const result = await getCollections({ limit: 50 });
+		collections = result.collections;
+	} catch {
+		// Non-critical — nav falls back to flat link
+	}
+
 	return {
 		cart,
 		user: locals.user,
 		siteUrl: env.PUBLIC_STORE_URL || 'http://localhost:5173',
-		wishlistProductIds
+		wishlistProductIds,
+		collections
 	};
 };

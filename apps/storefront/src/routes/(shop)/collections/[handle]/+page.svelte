@@ -1,12 +1,16 @@
 <script lang="ts">
 	import ProductGrid from '$components/shop/ProductGrid.svelte';
 	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
+	import FilterSidebar from '$components/shop/FilterSidebar.svelte';
+	import { page } from '$app/stores';
 	import { fadeInUp } from '$utils/animations';
+	import type { ProductCategory } from '$server/medusa';
 
 	interface Props {
 		data: {
 			collection: import('$server/medusa').Collection;
 			products: import('$server/medusa').Product[];
+			categories: ProductCategory[];
 			count: number;
 			page: number;
 			pageCount: number;
@@ -19,6 +23,17 @@
 	$effect(() => {
 		if (headingEl) fadeInUp(headingEl);
 	});
+
+	function paginationUrl(pageNum: number): string {
+		const params = new URLSearchParams($page.url.searchParams);
+		if (pageNum <= 1) {
+			params.delete('page');
+		} else {
+			params.set('page', String(pageNum));
+		}
+		const qs = params.toString();
+		return `/collections/${data.collection.handle}${qs ? `?${qs}` : ''}`;
+	}
 </script>
 
 <svelte:head>
@@ -34,47 +49,53 @@
 
 	<h1 bind:this={headingEl} class="mb-8 font-heading text-3xl font-bold text-neutral-900">{data.collection.title}</h1>
 
-	{#if data.products.length === 0}
-		<div class="py-16 text-center">
-			<p class="text-sm text-neutral-500">No products in this collection yet.</p>
-			<a href="/products" class="mt-4 inline-block text-sm font-medium text-primary-600 hover:text-primary-700">
-				Browse all products
-			</a>
+	<div class="flex gap-8">
+		<FilterSidebar collections={[]} categories={data.categories} />
+
+		<div class="min-w-0 flex-1">
+			{#if data.products.length === 0}
+				<div class="py-16 text-center">
+					<p class="text-sm text-neutral-500">No products match your filters.</p>
+					<a href="/collections/{data.collection.handle}" class="mt-4 inline-block text-sm font-medium text-primary-600 hover:text-primary-700">
+						Clear filters
+					</a>
+				</div>
+			{:else}
+				<ProductGrid products={data.products} />
+			{/if}
+
+			{#if data.pageCount > 1}
+				<nav class="mt-12 flex items-center justify-center gap-2" aria-label="Pagination">
+					{#if data.page > 1}
+						<a
+							href={paginationUrl(data.page - 1)}
+							class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+						>
+							Previous
+						</a>
+					{/if}
+
+					{#each Array.from({ length: data.pageCount }, (_, i) => i + 1) as pageNum}
+						<a
+							href={paginationUrl(pageNum)}
+							class="rounded-lg px-4 py-2 text-sm {pageNum === data.page
+								? 'bg-primary-600 text-white'
+								: 'border border-neutral-200 text-neutral-700 hover:bg-neutral-50'}"
+						>
+							{pageNum}
+						</a>
+					{/each}
+
+					{#if data.page < data.pageCount}
+						<a
+							href={paginationUrl(data.page + 1)}
+							class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+						>
+							Next
+						</a>
+					{/if}
+				</nav>
+			{/if}
 		</div>
-	{:else}
-		<ProductGrid products={data.products} />
-	{/if}
-
-	{#if data.pageCount > 1}
-		<nav class="mt-12 flex items-center justify-center gap-2" aria-label="Pagination">
-			{#if data.page > 1}
-				<a
-					href="/collections/{data.collection.handle}?page={data.page - 1}"
-					class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
-				>
-					Previous
-				</a>
-			{/if}
-
-			{#each Array.from({ length: data.pageCount }, (_, i) => i + 1) as pageNum}
-				<a
-					href="/collections/{data.collection.handle}?page={pageNum}"
-					class="rounded-lg px-4 py-2 text-sm {pageNum === data.page
-						? 'bg-primary-600 text-white'
-						: 'border border-neutral-200 text-neutral-700 hover:bg-neutral-50'}"
-				>
-					{pageNum}
-				</a>
-			{/each}
-
-			{#if data.page < data.pageCount}
-				<a
-					href="/collections/{data.collection.handle}?page={data.page + 1}"
-					class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
-				>
-					Next
-				</a>
-			{/if}
-		</nav>
-	{/if}
+	</div>
 </div>

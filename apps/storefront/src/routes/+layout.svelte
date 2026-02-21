@@ -8,6 +8,7 @@
 	import MobileMenu from '$components/layout/MobileMenu.svelte';
 	import CartDrawer from '$components/shop/CartDrawer.svelte';
 	import SearchOverlay from '$components/shop/SearchOverlay.svelte';
+	import BackToTop from '$components/BackToTop.svelte';
 	import { Toaster } from '$ui/sonner';
 	import { cart } from '$stores/cart';
 	import { initWishlist } from '$stores/wishlist';
@@ -19,7 +20,7 @@
 	import type { AuthUser } from '$server/auth';
 
 	interface Props {
-		data: { cart: import('$server/medusa').Cart | null; user: AuthUser | null; siteUrl: string; wishlistProductIds: string[] };
+		data: { cart: import('$server/medusa').Cart | null; user: AuthUser | null; siteUrl: string; wishlistProductIds: string[]; collections: { id: string; title: string; handle: string }[] };
 		children: Snippet;
 	}
 
@@ -86,11 +87,13 @@
 		/>
 		<Header
 			user={data.user}
+			collections={data.collections}
 			onToggleMobileMenu={() => mobileMenuOpen = !mobileMenuOpen}
 			onToggleSearch={() => searchOpen = !searchOpen}
 		/>
 		<MobileMenu
 			user={data.user}
+			collections={data.collections}
 			open={mobileMenuOpen}
 			onclose={() => mobileMenuOpen = false}
 		/>
@@ -105,6 +108,7 @@
 		open={searchOpen}
 		onclose={() => searchOpen = false}
 	/>
+	<BackToTop />
 {/if}
 <Toaster richColors position="bottom-right" />
 

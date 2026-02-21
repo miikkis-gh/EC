@@ -3,24 +3,108 @@
 	import { cn } from '$utils';
 
 	interface Props {
-		items: { label: string; href: string }[];
+		collections: { id: string; title: string; handle: string }[];
 	}
 
-	let { items }: Props = $props();
+	let { collections }: Props = $props();
+
+	let collectionsOpen = $state(false);
+	let hoverTimeout: ReturnType<typeof setTimeout> | undefined;
+	let closeTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	function openDropdown() {
+		clearTimeout(closeTimeout);
+		hoverTimeout = setTimeout(() => {
+			collectionsOpen = true;
+		}, 100);
+	}
+
+	function closeDropdown() {
+		clearTimeout(hoverTimeout);
+		closeTimeout = setTimeout(() => {
+			collectionsOpen = false;
+		}, 150);
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			collectionsOpen = false;
+		}
+	}
+
+	const navLinkClass = (href: string) =>
+		cn(
+			'text-sm font-medium transition-colors hover:text-neutral-900',
+			$page.url.pathname === href || $page.url.pathname.startsWith(href + '/')
+				? 'text-neutral-900'
+				: 'text-neutral-600'
+		);
 </script>
 
 <nav class="hidden items-center gap-8 md:flex" aria-label="Main">
-	{#each items as item (item.href)}
-		{@const isActive = $page.url.pathname === item.href || $page.url.pathname.startsWith(item.href + '/')}
-		<a
-			href={item.href}
-			aria-current={isActive ? 'page' : undefined}
-			class={cn(
-				'text-sm font-medium transition-colors hover:text-neutral-900',
-				isActive ? 'text-neutral-900' : 'text-neutral-600'
-			)}
+	<a href="/products" class={navLinkClass('/products')}>Products</a>
+
+	<!-- Collections dropdown -->
+	{#if collections.length > 0}
+		<div
+			class="relative"
+			role="navigation"
+			onmouseenter={openDropdown}
+			onmouseleave={closeDropdown}
+			onkeydown={handleKeydown}
 		>
-			{item.label}
-		</a>
-	{/each}
+			<a
+				href="/collections"
+				class="{navLinkClass('/collections')} inline-flex items-center gap-1"
+				aria-expanded={collectionsOpen}
+				aria-haspopup="true"
+			>
+				Collections
+				<svg
+					class="h-3.5 w-3.5 transition-transform {collectionsOpen ? 'rotate-180' : ''}"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="2"
+					stroke="currentColor"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+				</svg>
+			</a>
+
+			{#if collectionsOpen}
+				<div
+					class="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 rounded-lg border border-neutral-200 bg-white p-4 shadow-lg"
+					role="menu"
+				>
+					<div class="grid w-max gap-1 {collections.length > 6 ? 'grid-cols-3' : collections.length > 3 ? 'grid-cols-2' : 'grid-cols-1'}" style="min-width: 12rem;">
+						{#each collections as collection (collection.id)}
+							<a
+								href="/collections/{collection.handle}"
+								role="menuitem"
+								class="rounded-md px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900 whitespace-nowrap"
+								onclick={() => collectionsOpen = false}
+							>
+								{collection.title}
+							</a>
+						{/each}
+					</div>
+					<div class="mt-2 border-t border-neutral-100 pt-2">
+						<a
+							href="/collections"
+							role="menuitem"
+							class="block rounded-md px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 hover:text-primary-700"
+							onclick={() => collectionsOpen = false}
+						>
+							View all collections
+						</a>
+					</div>
+				</div>
+			{/if}
+		</div>
+	{:else}
+		<a href="/collections" class={navLinkClass('/collections')}>Collections</a>
+	{/if}
+
+	<a href="/about" class={navLinkClass('/about')}>About</a>
+	<a href="/contact" class={navLinkClass('/contact')}>Contact</a>
 </nav>

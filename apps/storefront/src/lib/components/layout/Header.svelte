@@ -6,18 +6,12 @@
 
 	interface Props {
 		user: AuthUser | null;
+		collections: { id: string; title: string; handle: string }[];
 		onToggleMobileMenu: () => void;
 		onToggleSearch: () => void;
 	}
 
-	let { user, onToggleMobileMenu, onToggleSearch }: Props = $props();
-
-	const navItems = [
-		{ label: 'Products', href: '/products' },
-		{ label: 'Collections', href: '/collections' },
-		{ label: 'About', href: '/about' },
-		{ label: 'Contact', href: '/contact' }
-	];
+	let { user, collections, onToggleMobileMenu, onToggleSearch }: Props = $props();
 </script>
 
 <header class="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur-lg">
@@ -28,7 +22,7 @@
 		</a>
 
 		<!-- Desktop Nav -->
-		<Navigation items={navItems} />
+		<Navigation {collections} />
 
 		<!-- Actions -->
 		<div class="flex items-center gap-2">
