@@ -106,5 +106,6 @@
 	{/if}
 
 	<a href="/about" class={navLinkClass('/about')}>About</a>
+	<a href="/blog" class={navLinkClass('/blog')}>Blog</a>
 	<a href="/contact" class={navLinkClass('/contact')}>Contact</a>
 </nav>

@@ -64,6 +64,33 @@ export function buildWebsiteJsonLd(siteUrl: string): string {
 	});
 }
 
+export function buildArticleJsonLd(
+	article: {
+		title: string;
+		excerpt: string;
+		date: string;
+		slug: string;
+	},
+	siteUrl: string
+): string {
+	return JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'BlogPosting',
+		headline: article.title,
+		description: article.excerpt,
+		datePublished: article.date,
+		url: `${siteUrl}/blog/${article.slug}`,
+		author: {
+			'@type': 'Organization',
+			name: 'EC1'
+		},
+		publisher: {
+			'@type': 'Organization',
+			name: 'EC1'
+		}
+	});
+}
+
 export function buildProductJsonLd(product: {
 	title: string;
 	description: string | null;

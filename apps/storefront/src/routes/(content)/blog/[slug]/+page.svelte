@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
+	import { buildArticleJsonLd } from '$utils/seo';
 	import { page } from '$app/stores';
 	import type { SvelteComponent } from 'svelte';
 
@@ -11,6 +12,7 @@
 	}
 
 	let { data }: Props = $props();
+	let siteUrl = $derived($page.data.siteUrl as string);
 	let ContentComponent = $state<typeof SvelteComponent | null>(null);
 
 	$effect(() => {
@@ -38,6 +40,7 @@
 	{#if data.post.excerpt}
 		<meta name="description" content={data.post.excerpt} />
 	{/if}
+	{@html `<script type="application/ld+json">${buildArticleJsonLd({ title: data.post.title, excerpt: data.post.excerpt, date: data.post.date, slug: data.slug }, siteUrl)}</script>`}
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">

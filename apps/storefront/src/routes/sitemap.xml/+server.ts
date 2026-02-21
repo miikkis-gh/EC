@@ -46,11 +46,22 @@ async function fetchAllCollections(): Promise<Collection[]> {
 	return all;
 }
 
+function loadBlogPosts(): Array<{ slug: string; date: string }> {
+	const modules = import.meta.glob('/src/content/blog/*.md', { eager: true });
+	return Object.entries(modules).map(([filepath, mod]) => {
+		const slug = filepath.split('/').pop()?.replace('.md', '') ?? '';
+		const metadata = (mod as { metadata: Record<string, string> }).metadata;
+		return { slug, date: metadata.date };
+	});
+}
+
 export const GET: RequestHandler = async () => {
 	const [products, collections] = await Promise.all([
 		fetchAllProducts(),
 		fetchAllCollections()
 	]);
+
+	const blogPosts = loadBlogPosts();
 
 	const staticPages = [
 		urlEntry(BASE_URL, undefined, '1.0'),
@@ -69,12 +80,17 @@ export const GET: RequestHandler = async () => {
 		urlEntry(`${BASE_URL}/products/${p.handle}`, p.updated_at, '0.8')
 	);
 
+	const blogUrls = blogPosts.map((post) =>
+		urlEntry(`${BASE_URL}/blog/${post.slug}`, post.date, '0.5')
+	);
+
 	const xml = [
 		'<?xml version="1.0" encoding="UTF-8"?>',
 		'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
 		...staticPages,
 		...collectionUrls,
 		...productUrls,
+		...blogUrls,
 		'</urlset>'
 	].join('\n');
 
