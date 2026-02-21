@@ -154,7 +154,7 @@
 				style="width: {(currentStep / (TOTAL_STEPS - 1)) * 100}%"
 			></div>
 		</div>
-		<p class="mt-2 text-xs text-neutral-400 text-right">Step {Math.min(currentStep + 1, TOTAL_STEPS - 1)} of {TOTAL_STEPS - 1}</p>
+		<p class="mt-2 text-xs text-neutral-400 text-right">Step {Math.max(currentStep, 1)} of {TOTAL_STEPS - 1}</p>
 	</div>
 
 	<!-- Step container -->
