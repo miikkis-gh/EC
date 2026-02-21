@@ -2,11 +2,12 @@
 	import { page } from '$app/stores';
 	import { Button } from '$ui/button';
 	import { LayoutDashboard, Package, MapPin, Heart, Settings } from '@lucide/svelte';
+	import EmailVerificationBanner from '$components/EmailVerificationBanner.svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
 		data: {
-			user: { id: string; email: string; medusaCustomerId: string | null };
+			user: { id: string; email: string; medusaCustomerId: string | null; emailVerified: boolean };
 			customer: import('$server/medusa').CustomerWithAddresses | null;
 		};
 		children: Snippet;
@@ -34,6 +35,10 @@
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+	{#if !data.user.emailVerified}
+		<EmailVerificationBanner />
+	{/if}
+
 	<div class="mb-8 flex items-center justify-between">
 		<h1 class="font-heading text-3xl font-bold text-neutral-900">My Account</h1>
 		<form method="POST" action="/api/auth/logout">

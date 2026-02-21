@@ -10,6 +10,11 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		redirect(302, '/cart');
 	}
 
+	// Block checkout for logged-in users who haven't verified their email
+	if (locals.user && !locals.user.emailVerified) {
+		redirect(302, '/account?verify=required');
+	}
+
 	try {
 		const [cartResult, addresses] = await Promise.all([
 			getCart(cartId),

@@ -47,6 +47,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "@types/pg": "^8.16.0",
     "eslint": "^9.18.0",
+    "mdsvex": "^0.12.6",
     "prettier": "^3.4.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.1.0",

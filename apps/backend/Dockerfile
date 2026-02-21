@@ -23,7 +23,8 @@ RUN addgroup -S medusa && adduser -S medusa -G medusa
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --from=builder /app/apps/backend/ apps/backend/
 RUN pnpm install --frozen-lockfile --filter backend... --prod
-RUN chown -R medusa:medusa /app
+RUN mkdir -p /app/apps/backend/uploads && chown -R medusa:medusa /app
+VOLUME ["/app/apps/backend/uploads"]
 USER medusa
 EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

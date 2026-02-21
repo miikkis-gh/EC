@@ -2,6 +2,7 @@
 	import PriceDisplay from './PriceDisplay.svelte';
 	import WishlistButton from './WishlistButton.svelte';
 	import QuickView from './QuickView.svelte';
+	import BlurImage from './BlurImage.svelte';
 	import { imageHoverZoom } from '$utils/animations';
 	import type { Product } from '$server/medusa';
 
@@ -55,14 +56,16 @@
 	<!-- Image -->
 	<div class="relative aspect-square overflow-hidden bg-neutral-100">
 		{#if product.thumbnail && !imgFailed}
-			<img
-				bind:this={imgEl}
-				src={product.thumbnail}
-				alt={product.title}
-				class="h-full w-full object-cover"
-				loading="lazy"
-				onerror={() => imgFailed = true}
-			/>
+			<div bind:this={imgEl}>
+				<BlurImage
+					src={product.thumbnail}
+					alt={product.title}
+					blurhash={(product.metadata?.image_blurhashes as Record<string, string> | undefined)?.[product.thumbnail]}
+					sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+					class="h-full w-full"
+					loading="lazy"
+				/>
+			</div>
 		{:else}
 			<div class="flex h-full items-center justify-center text-neutral-400">
 				<svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">

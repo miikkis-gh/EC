@@ -1,32 +1,19 @@
 <script lang="ts">
 	import { fadeInUp } from '$utils/animations';
+	import type { BlogPost } from './+page.server';
 
+	interface Props {
+		data: {
+			posts: BlogPost[];
+		};
+	}
+
+	let { data }: Props = $props();
 	let headingEl: HTMLElement | undefined = $state();
 
 	$effect(() => {
 		if (headingEl) fadeInUp(headingEl);
 	});
-
-	const posts = [
-		{
-			slug: 'building-a-sustainable-wardrobe',
-			title: 'Building a Sustainable Wardrobe',
-			excerpt: 'Discover how to make thoughtful choices that last longer and reduce your environmental footprint.',
-			date: '2026-02-10'
-		},
-		{
-			slug: 'the-art-of-minimalist-design',
-			title: 'The Art of Minimalist Design',
-			excerpt: 'Why less is more when it comes to product design, and how simplicity enhances everyday life.',
-			date: '2026-01-28'
-		},
-		{
-			slug: 'behind-the-scenes-product-curation',
-			title: 'Behind the Scenes: Product Curation',
-			excerpt: 'A look at how our team selects and tests every product before it makes it to the store.',
-			date: '2026-01-15'
-		}
-	];
 
 	function formatDate(dateStr: string) {
 		return new Date(dateStr).toLocaleDateString('en-US', {
@@ -51,7 +38,7 @@
 	</div>
 
 	<div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-		{#each posts as post (post.slug)}
+		{#each data.posts as post (post.slug)}
 			<a href="/blog/{post.slug}" class="group">
 				<article class="overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg">
 					<!-- Placeholder image -->

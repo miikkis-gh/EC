@@ -4,6 +4,7 @@
 	import QuantitySelector from './QuantitySelector.svelte';
 	import StockBadge from './StockBadge.svelte';
 	import WishlistButton from './WishlistButton.svelte';
+	import BlurImage from './BlurImage.svelte';
 	import { addToCartOptimistic } from '$stores/cart';
 	import type { Product } from '$server/medusa';
 
@@ -64,10 +65,12 @@
 			<!-- Image -->
 			<div class="aspect-square overflow-hidden rounded-l-lg bg-neutral-100">
 				{#if product.thumbnail}
-					<img
+					<BlurImage
 						src={product.thumbnail}
 						alt={product.title}
-						class="h-full w-full object-cover"
+						blurhash={(product.metadata?.image_blurhashes as Record<string, string> | undefined)?.[product.thumbnail]}
+						sizes="(min-width: 640px) 50vw, 100vw"
+						class="h-full w-full"
 					/>
 				{:else}
 					<div class="flex h-full items-center justify-center text-neutral-400">

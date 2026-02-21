@@ -139,7 +139,7 @@ const securityHandle: Handle = async ({ event, resolve }) => {
 			"default-src 'self'",
 			"script-src 'self' 'unsafe-inline' https://js.stripe.com",
 			"style-src 'self' 'unsafe-inline'",
-			"img-src 'self' data: https://res.cloudinary.com https://*.cloudinary.com https://*.stripe.com",
+			`img-src 'self' data: https://res.cloudinary.com https://*.cloudinary.com https://*.stripe.com ${dev ? 'http://localhost:9000' : 'https://api.sellio.fi'}`,
 			"font-src 'self' data:",
 			connectSrc + sentryConnect,
 			"frame-src https://js.stripe.com https://hooks.stripe.com",

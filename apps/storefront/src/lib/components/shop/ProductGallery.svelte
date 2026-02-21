@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { cn } from '$utils';
 	import ImageLightbox from './ImageLightbox.svelte';
+	import BlurImage from './BlurImage.svelte';
 
 	interface Props {
 		images: { id: string; url: string }[];
 		thumbnail: string | null;
 		alt: string;
+		blurhashes?: Record<string, string> | null;
 	}
 
-	let { images, thumbnail, alt }: Props = $props();
+	let { images, thumbnail, alt, blurhashes = null }: Props = $props();
 	let selectedIndex = $state(0);
 	let failedUrls = $state(new Set<string>());
 	let lightboxOpen = $state(false);
@@ -51,11 +53,13 @@
 		aria-label="Zoom image"
 	>
 		{#if currentImage && !failedUrls.has(currentImage.url)}
-			<img
+			<BlurImage
 				src={currentImage.url}
 				{alt}
-				class="h-full w-full object-cover"
-				onerror={() => handleImgError(currentImage.url)}
+				blurhash={blurhashes?.[currentImage.url]}
+				sizes="(min-width: 1024px) 50vw, 100vw"
+				class="h-full w-full"
+				loading="eager"
 			/>
 		{:else}
 			<div class="flex h-full items-center justify-center text-neutral-400">

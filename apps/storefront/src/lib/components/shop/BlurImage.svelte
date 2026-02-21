@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { decode } from 'blurhash';
 	import { cloudinarySrcset } from '$utils/cloudinary';
+	import { imageSrcset, imageUrl } from '$utils/image';
 
 	interface Props {
 		src: string;
 		alt: string;
 		blurhash?: string;
-		width: number;
-		height: number;
+		width?: number;
+		height?: number;
 		class?: string;
 		sizes?: string;
 		loading?: 'lazy' | 'eager';
@@ -27,7 +28,9 @@
 	let loaded = $state(false);
 	let canvas: HTMLCanvasElement | undefined = $state();
 
-	const srcset = $derived(cloudinarySrcset(src));
+	const isLocalUpload = $derived(src.includes('/uploads/'));
+	const resolvedSrc = $derived(isLocalUpload ? imageUrl(src) : src);
+	const srcset = $derived(isLocalUpload ? imageSrcset(src) : cloudinarySrcset(src));
 
 	$effect(() => {
 		if (canvas && blurhash) {
@@ -67,7 +70,7 @@
 		></div>
 	{/if}
 	<img
-		{src}
+		src={resolvedSrc}
 		srcset={srcset || undefined}
 		{sizes}
 		{alt}

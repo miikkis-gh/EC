@@ -6,6 +6,7 @@ interface UserRow {
 	password_hash: string;
 	medusa_customer_id: string | null;
 	onboarded_at: Date | null;
+	email_verified: boolean;
 	created_at: Date;
 	updated_at: Date;
 }
@@ -16,6 +17,7 @@ export interface LocalUser {
 	passwordHash: string;
 	medusaCustomerId: string | null;
 	onboardedAt: Date | null;
+	emailVerified: boolean;
 }
 
 function mapRow(row: UserRow): LocalUser {
@@ -24,7 +26,8 @@ function mapRow(row: UserRow): LocalUser {
 		email: row.email,
 		passwordHash: row.password_hash,
 		medusaCustomerId: row.medusa_customer_id,
-		onboardedAt: row.onboarded_at
+		onboardedAt: row.onboarded_at,
+		emailVerified: row.email_verified
 	};
 }
 
@@ -82,6 +85,13 @@ export async function updateUserMedusaCustomerId(
 export async function markUserOnboarded(userId: string): Promise<void> {
 	await execute(
 		'UPDATE auth_user SET onboarded_at = NOW(), updated_at = NOW() WHERE id = $1',
+		[userId]
+	);
+}
+
+export async function markUserEmailVerified(userId: string): Promise<void> {
+	await execute(
+		'UPDATE auth_user SET email_verified = true, updated_at = NOW() WHERE id = $1',
 		[userId]
 	);
 }

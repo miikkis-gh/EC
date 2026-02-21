@@ -9,6 +9,12 @@ import {
 	setSessionTokenCookie
 } from '$server/auth';
 import { registerSchema } from '$utils/validation';
+import { createEmailVerificationToken } from '$server/email-verification';
+import { sendEmail } from '$server/email';
+import { env } from '$env/dynamic/public';
+import { createLogger } from '$server/logger';
+
+const logger = createLogger('register');
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
@@ -100,6 +106,25 @@ export const actions: Actions = {
 		const token = generateSessionToken();
 		const session = await createSession(token, user.id, sessionMedusaToken);
 		setSessionTokenCookie(event, token, session.expiresAt);
+
+		// Send verification email (fire-and-forget)
+		try {
+			const verificationToken = await createEmailVerificationToken(user.id);
+			const verifyUrl = `${env.PUBLIC_STORE_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}`;
+
+			await sendEmail({
+				to: email,
+				subject: 'Verify your email — EC1',
+				html: `
+					<h2>Welcome to EC1!</h2>
+					<p>Please verify your email address to complete your account setup.</p>
+					<p><a href="${verifyUrl}">Click here to verify your email</a></p>
+					<p>This link expires in 24 hours.</p>
+				`
+			});
+		} catch (err) {
+			logger.error('Failed to send verification email', err, { userId: user.id });
+		}
 
 		redirect(302, '/welcome');
 	}

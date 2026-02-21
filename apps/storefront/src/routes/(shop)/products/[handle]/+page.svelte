@@ -21,10 +21,8 @@
 	interface Props {
 		data: {
 			product: Product;
-			relatedProducts: Product[];
-			reviews: Review[];
-			reviewStats: ReviewStats;
-			userReview: Review | null;
+			relatedProducts: Promise<Product[]>;
+			reviewData: Promise<{ reviews: Review[]; reviewStats: ReviewStats; userReview: Review | null }>;
 		};
 	}
 
@@ -119,6 +117,7 @@
 			images={product.images ?? []}
 			thumbnail={product.thumbnail}
 			alt={product.title}
+			blurhashes={product.metadata?.image_blurhashes as Record<string, string> | undefined}
 		/>
 
 		<!-- Info -->
@@ -133,7 +132,9 @@
 			{/if}
 
 			<h1 class="mt-2 font-heading text-3xl font-bold text-neutral-900">{product.title}</h1>
-			<ReviewStars rating={data.reviewStats.averageRating} count={data.reviewStats.totalCount} clickable class="mt-2" />
+			{#await data.reviewData then reviewData}
+			<ReviewStars rating={reviewData.reviewStats.averageRating} count={reviewData.reviewStats.totalCount} clickable class="mt-2" />
+		{/await}
 
 			<PriceDisplay
 				amount={price}
@@ -200,12 +201,22 @@
 		</div>
 	</div>
 
-	<ReviewSection
-		productId={product.id}
-		reviews={data.reviews}
-		stats={data.reviewStats}
-		userReview={data.userReview}
-	/>
-	<RelatedProducts products={data.relatedProducts} />
+	{#await data.reviewData then reviewData}
+		<ReviewSection
+			productId={product.id}
+			reviews={reviewData.reviews}
+			stats={reviewData.reviewStats}
+			userReview={reviewData.userReview}
+		/>
+	{:catch}
+		<!-- Reviews failed to load, show empty section -->
+	{/await}
+
+	{#await data.relatedProducts then relatedProducts}
+		<RelatedProducts products={relatedProducts} />
+	{:catch}
+		<!-- Related products failed to load -->
+	{/await}
+
 	<RecentlyViewed currentProductId={product.id} />
 </div>

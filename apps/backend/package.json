@@ -29,8 +29,10 @@
     "@medusajs/draft-order": "2.13.1",
     "@medusajs/framework": "2.13.1",
     "@medusajs/medusa": "2.13.1",
+    "blurhash": "^2.0.5",
     "meilisearch": "^0.55.0",
-    "resend": "^6.9.2"
+    "resend": "^6.9.2",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.13.1",

@@ -7,7 +7,8 @@
       "@swc/core",
       "esbuild",
       "msgpackr-extract",
-      "protobufjs"
+      "protobufjs",
+      "sharp"
     ],
     "overrides": {
       "zod": "3.25.76"

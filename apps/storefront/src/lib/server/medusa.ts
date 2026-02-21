@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { createLogger } from './logger';
+import { cached } from './cache';
 
 const BACKEND_URL = env.MEDUSA_BACKEND_URL || 'http://localhost:9000';
 const logger = createLogger('medusa');
@@ -17,6 +18,7 @@ export interface Product {
 	options: ProductOption[];
 	collection_id: string | null;
 	collection: Collection | null;
+	metadata: Record<string, unknown> | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -317,8 +319,14 @@ export async function getProducts(params?: {
 	if (regionId) searchParams.set('region_id', regionId);
 
 	const query = searchParams.toString();
-	return medusaRequest<{ products: Product[]; count: number; offset: number; limit: number }>(
-		`/products${query ? `?${query}` : ''}`
+	const cacheKey = `products:${query}`;
+
+	return cached(
+		cacheKey,
+		() => medusaRequest<{ products: Product[]; count: number; offset: number; limit: number }>(
+			`/products${query ? `?${query}` : ''}`
+		),
+		{ ttl: 300, swr: 60 }
 	);
 }
 
@@ -341,8 +349,13 @@ export async function getProductByHandle(
 ): Promise<{ products: Product[] }> {
 	const regionId = await getDefaultRegionId();
 	const regionParam = regionId ? `&region_id=${regionId}` : '';
-	return medusaRequest<{ products: Product[] }>(
-		`/products?handle=${encodeURIComponent(handle)}&fields=+variants.calculated_price${regionParam}`
+
+	return cached(
+		`product:${handle}`,
+		() => medusaRequest<{ products: Product[] }>(
+			`/products?handle=${encodeURIComponent(handle)}&fields=+variants.calculated_price${regionParam}`
+		),
+		{ ttl: 300, swr: 60 }
 	);
 }
 
@@ -357,12 +370,18 @@ export async function getCollections(params?: {
 	if (params?.offset) searchParams.set('offset', String(params.offset));
 
 	const query = searchParams.toString();
-	return medusaRequest<{
-		collections: Collection[];
-		count: number;
-		offset: number;
-		limit: number;
-	}>(`/collections${query ? `?${query}` : ''}`);
+	const cacheKey = `collections:${query}`;
+
+	return cached(
+		cacheKey,
+		() => medusaRequest<{
+			collections: Collection[];
+			count: number;
+			offset: number;
+			limit: number;
+		}>(`/collections${query ? `?${query}` : ''}`),
+		{ ttl: 300, swr: 60 }
+	);
 }
 
 export async function getCollectionByHandle(
@@ -392,8 +411,14 @@ export async function getProductCategories(params?: {
 	if (params?.offset) searchParams.set('offset', String(params.offset));
 
 	const query = searchParams.toString();
-	return medusaRequest<{ product_categories: ProductCategory[]; count: number }>(
-		`/product-categories${query ? `?${query}` : ''}`
+	const cacheKey = `categories:${query}`;
+
+	return cached(
+		cacheKey,
+		() => medusaRequest<{ product_categories: ProductCategory[]; count: number }>(
+			`/product-categories${query ? `?${query}` : ''}`
+		),
+		{ ttl: 600, swr: 60 }
 	);
 }
 
