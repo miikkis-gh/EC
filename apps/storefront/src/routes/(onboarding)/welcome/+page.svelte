@@ -3,11 +3,38 @@
 	import { Button } from '$ui/button';
 	import { Input } from '$ui/input';
 	import { Label } from '$ui/label';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$ui/select';
 	import { cn } from '$utils';
 	import { stepTransition, celebrationReveal } from '$utils/animations';
 	import { Truck, ShieldCheck, Clock, Check, ShoppingBag, User } from '@lucide/svelte';
 	import { onMount, tick } from 'svelte';
 	import gsap from 'gsap';
+
+	const countries = [
+		{ code: 'fi', name: 'Finland' },
+		{ code: 'se', name: 'Sweden' },
+		{ code: 'no', name: 'Norway' },
+		{ code: 'dk', name: 'Denmark' },
+		{ code: 'ee', name: 'Estonia' },
+		{ code: 'de', name: 'Germany' },
+		{ code: 'nl', name: 'Netherlands' },
+		{ code: 'be', name: 'Belgium' },
+		{ code: 'at', name: 'Austria' },
+		{ code: 'ch', name: 'Switzerland' },
+		{ code: 'fr', name: 'France' },
+		{ code: 'es', name: 'Spain' },
+		{ code: 'pt', name: 'Portugal' },
+		{ code: 'it', name: 'Italy' },
+		{ code: 'gb', name: 'United Kingdom' },
+		{ code: 'ie', name: 'Ireland' },
+		{ code: 'pl', name: 'Poland' },
+		{ code: 'cz', name: 'Czech Republic' },
+		{ code: 'lt', name: 'Lithuania' },
+		{ code: 'lv', name: 'Latvia' },
+		{ code: 'us', name: 'United States' },
+		{ code: 'ca', name: 'Canada' },
+		{ code: 'au', name: 'Australia' },
+	];
 
 	interface Props {
 		data: {
@@ -35,6 +62,7 @@
 	let profileSaved = $state(data.resumeStep >= 2);
 	let addressSaved = $state(data.resumeStep >= 3);
 	let submitting = $state(false);
+	let selectedCountry = $state('fi');
 
 	// Refs for step containers
 	let stepContainer: HTMLDivElement;
@@ -345,16 +373,18 @@
 							<Input id="province" name="province" type="text" autocomplete="address-level1" />
 						</div>
 						<div class="space-y-2">
-							<Label for="country_code">Country code</Label>
-							<Input
-								id="country_code"
-								name="country_code"
-								type="text"
-								autocomplete="country"
-								required
-								maxlength={2}
-								placeholder="FI"
-							/>
+							<Label>Country</Label>
+							<input type="hidden" name="country_code" value={selectedCountry} />
+							<Select type="single" bind:value={selectedCountry}>
+								<SelectTrigger class="w-full">
+									{countries.find(c => c.code === selectedCountry)?.name ?? 'Select country'}
+								</SelectTrigger>
+								<SelectContent>
+									{#each countries as country (country.code)}
+										<SelectItem value={country.code} label={country.name} />
+									{/each}
+								</SelectContent>
+							</Select>
 						</div>
 					</div>
 

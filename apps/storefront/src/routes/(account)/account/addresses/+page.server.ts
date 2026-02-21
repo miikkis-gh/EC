@@ -39,7 +39,7 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const addressId = formData.get('address_id');
-		if (!addressId || typeof addressId !== 'string' || !addressId.startsWith('addr_')) {
+		if (!addressId || typeof addressId !== 'string') {
 			return fail(400, { error: 'Invalid address ID' });
 		}
 
@@ -69,7 +69,7 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const addressId = formData.get('address_id');
-		if (!addressId || typeof addressId !== 'string' || !addressId.startsWith('addr_')) {
+		if (!addressId || typeof addressId !== 'string') {
 			return fail(400, { error: 'Invalid address ID' });
 		}
 
