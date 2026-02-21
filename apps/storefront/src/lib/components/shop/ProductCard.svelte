@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PriceDisplay from './PriceDisplay.svelte';
+	import WishlistButton from './WishlistButton.svelte';
 	import { imageHoverZoom } from '$utils/animations';
 	import type { Product } from '$server/medusa';
 
@@ -33,12 +34,12 @@
 
 <a
 	href="/products/{product.handle}"
-	class="group block overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg"
+	class="group relative block overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-lg"
 	data-product-card
 	bind:this={containerEl}
 >
 	<!-- Image -->
-	<div class="aspect-square overflow-hidden bg-neutral-100">
+	<div class="relative aspect-square overflow-hidden bg-neutral-100">
 		{#if product.thumbnail && !imgFailed}
 			<img
 				bind:this={imgEl}
@@ -55,6 +56,9 @@
 				</svg>
 			</div>
 		{/if}
+		<div class="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100">
+			<WishlistButton productId={product.id} class="bg-white/80 backdrop-blur-sm shadow-sm" />
+		</div>
 	</div>
 
 	<!-- Info -->

@@ -4,14 +4,18 @@
 	import Breadcrumbs from '$components/shop/Breadcrumbs.svelte';
 	import ProductGallery from '$components/shop/ProductGallery.svelte';
 	import ReviewStars from '$components/shop/ReviewStars.svelte';
+	import RelatedProducts from '$components/shop/RelatedProducts.svelte';
+	import RecentlyViewed from '$components/shop/RecentlyViewed.svelte';
+	import WishlistButton from '$components/shop/WishlistButton.svelte';
 	import { addToCartOptimistic } from '$stores/cart';
+	import { addRecentlyViewed } from '$stores/recently-viewed';
 	import { fadeInUp } from '$utils/animations';
 	import { buildProductJsonLd } from '$utils/seo';
 	import { page } from '$app/stores';
 	import type { Product } from '$server/medusa';
 
 	interface Props {
-		data: { product: Product };
+		data: { product: Product; relatedProducts: Product[] };
 	}
 
 	let { data }: Props = $props();
@@ -24,6 +28,10 @@
 
 	$effect(() => {
 		if (pageEl) fadeInUp(pageEl);
+	});
+
+	$effect(() => {
+		addRecentlyViewed(product);
 	});
 
 	const selectedVariant = $derived(product.variants[selectedVariantIndex]);
@@ -133,7 +141,11 @@
 				>
 					{adding ? 'Adding...' : 'Add to Cart'}
 				</button>
+				<WishlistButton productId={product.id} class="border border-neutral-200 p-2.5" />
 			</div>
 		</div>
 	</div>
+
+	<RelatedProducts products={data.relatedProducts} />
+	<RecentlyViewed currentProductId={product.id} />
 </div>

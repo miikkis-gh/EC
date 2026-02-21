@@ -1,6 +1,12 @@
+<script lang="ts">
+	import NewsletterSignup from './NewsletterSignup.svelte';
+</script>
+
 <footer class="border-t border-neutral-200 bg-neutral-50">
 	<div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-		<div class="grid grid-cols-1 gap-8 md:grid-cols-4">
+		<NewsletterSignup />
+
+		<div class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-4">
 			<!-- Brand -->
 			<div>
 				<a href="/" class="font-heading text-lg font-bold text-neutral-900">EC1</a>

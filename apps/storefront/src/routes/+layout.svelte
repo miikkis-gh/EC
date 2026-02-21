@@ -10,6 +10,7 @@
 	import SearchOverlay from '$components/shop/SearchOverlay.svelte';
 	import { Toaster } from '$ui/sonner';
 	import { cart } from '$stores/cart';
+	import { initWishlist } from '$stores/wishlist';
 	import { navigating, page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -18,7 +19,7 @@
 	import type { AuthUser } from '$server/auth';
 
 	interface Props {
-		data: { cart: import('$server/medusa').Cart | null; user: AuthUser | null; siteUrl: string };
+		data: { cart: import('$server/medusa').Cart | null; user: AuthUser | null; siteUrl: string; wishlistProductIds: string[] };
 		children: Snippet;
 	}
 
@@ -30,6 +31,13 @@
 	$effect(() => {
 		if (data.cart) {
 			cart.set(data.cart);
+		}
+	});
+
+	// Initialize wishlist store from server data
+	$effect(() => {
+		if (data.wishlistProductIds) {
+			initWishlist(data.wishlistProductIds);
 		}
 	});
 

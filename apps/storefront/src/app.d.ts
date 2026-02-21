@@ -9,6 +9,7 @@ declare global {
 		}
 		interface PageData {
 			cart?: import('$server/medusa').Cart;
+			wishlistProductIds?: string[];
 		}
 		// interface Error {}
 		// interface Platform {}

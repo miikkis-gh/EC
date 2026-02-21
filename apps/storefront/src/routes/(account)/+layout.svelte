@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { Button } from '$ui/button';
-	import { LayoutDashboard, Package, MapPin, Settings } from '@lucide/svelte';
+	import { LayoutDashboard, Package, MapPin, Heart, Settings } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -18,6 +18,7 @@
 		{ href: '/account', label: 'Overview', icon: LayoutDashboard },
 		{ href: '/account/orders', label: 'Orders', icon: Package },
 		{ href: '/account/addresses', label: 'Addresses', icon: MapPin },
+		{ href: '/account/wishlist', label: 'Wishlist', icon: Heart },
 		{ href: '/account/settings', label: 'Settings', icon: Settings }
 	];
 

@@ -315,6 +315,20 @@ export async function getProducts(params?: {
 	);
 }
 
+export async function getProductsByIds(
+	ids: string[]
+): Promise<{ products: Product[] }> {
+	if (ids.length === 0) return { products: [] };
+	const regionId = await getDefaultRegionId();
+	const searchParams = new URLSearchParams();
+	ids.forEach((id) => searchParams.append('id[]', id));
+	searchParams.set('fields', '+variants.calculated_price');
+	if (regionId) searchParams.set('region_id', regionId);
+	searchParams.set('limit', String(ids.length));
+
+	return medusaRequest<{ products: Product[] }>(`/products?${searchParams.toString()}`);
+}
+
 export async function getProductByHandle(
 	handle: string
 ): Promise<{ products: Product[] }> {

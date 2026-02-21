@@ -79,6 +79,18 @@ export const contactSchema = z.object({
 	message: z.string().min(1, 'Message is required').max(5000)
 });
 
+// --- Wishlist schema ---
+
+export const wishlistSchema = z.object({
+	productId: z.string().min(1, 'Product ID is required')
+});
+
+// --- Newsletter schema ---
+
+export const newsletterSchema = z.object({
+	email: emailSchema
+});
+
 // --- Profile schema ---
 
 export const profileSchema = z.object({
