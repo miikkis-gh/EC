@@ -57,6 +57,6 @@
 <style>
 	.scrollbar-thin {
 		scrollbar-width: thin;
-		scrollbar-color: theme('colors.neutral.300') transparent;
+		scrollbar-color: #d4d4d4 transparent;
 	}
 </style>

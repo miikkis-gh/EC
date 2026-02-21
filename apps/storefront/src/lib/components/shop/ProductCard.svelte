@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PriceDisplay from './PriceDisplay.svelte';
 	import WishlistButton from './WishlistButton.svelte';
+	import QuickView from './QuickView.svelte';
 	import { imageHoverZoom } from '$utils/animations';
 	import type { Product } from '$server/medusa';
 
@@ -30,6 +31,19 @@
 		product.variants?.[0]?.prices?.[0]?.currency_code ??
 		'eur'
 	);
+
+	const firstVariant = $derived(product.variants?.[0]);
+	const isOutOfStock = $derived(
+		firstVariant?.manage_inventory && firstVariant?.inventory_quantity === 0
+	);
+
+	let quickViewOpen = $state(false);
+
+	function openQuickView(e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		quickViewOpen = true;
+	}
 </script>
 
 <a
@@ -56,8 +70,23 @@
 				</svg>
 			</div>
 		{/if}
-		<div class="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100">
+		{#if isOutOfStock}
+			<div class="absolute inset-0 flex items-center justify-center bg-white/60">
+				<span class="rounded-full bg-neutral-900/80 px-3 py-1 text-xs font-semibold text-white">Out of Stock</span>
+			</div>
+		{/if}
+		<div class="absolute right-2 top-2 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100">
 			<WishlistButton productId={product.id} class="bg-white/80 backdrop-blur-sm shadow-sm" />
+			<button
+				onclick={openQuickView}
+				class="rounded-full bg-white/80 p-1.5 text-neutral-400 shadow-sm backdrop-blur-sm transition-colors hover:text-neutral-700"
+				aria-label="Quick view {product.title}"
+			>
+				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+				</svg>
+			</button>
 		</div>
 	</div>
 
@@ -73,3 +102,9 @@
 		/>
 	</div>
 </a>
+
+<QuickView
+	{product}
+	bind:open={quickViewOpen}
+	onclose={() => quickViewOpen = false}
+/>

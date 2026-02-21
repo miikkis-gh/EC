@@ -7,6 +7,7 @@
 	import RelatedProducts from '$components/shop/RelatedProducts.svelte';
 	import RecentlyViewed from '$components/shop/RecentlyViewed.svelte';
 	import WishlistButton from '$components/shop/WishlistButton.svelte';
+	import StockBadge from '$components/shop/StockBadge.svelte';
 	import ReviewSection from '$components/shop/ReviewSection.svelte';
 	import { addToCartOptimistic } from '$stores/cart';
 	import { addRecentlyViewed } from '$stores/recently-viewed';
@@ -52,6 +53,9 @@
 		selectedVariant?.calculated_price?.currency_code ??
 		selectedVariant?.prices?.[0]?.currency_code ??
 		'eur'
+	);
+	const outOfStock = $derived(
+		selectedVariant?.manage_inventory && selectedVariant?.inventory_quantity === 0
 	);
 
 	const breadcrumbItems = $derived(() => {
@@ -116,6 +120,14 @@
 				class="mt-4 block text-2xl font-semibold text-neutral-900"
 			/>
 
+			{#if selectedVariant}
+				<StockBadge
+					quantity={selectedVariant.inventory_quantity}
+					manageInventory={selectedVariant.manage_inventory}
+					class="mt-3"
+				/>
+			{/if}
+
 			{#if product.description}
 				<p class="mt-6 text-neutral-600">{product.description}</p>
 			{/if}
@@ -144,10 +156,14 @@
 				<QuantitySelector {quantity} onchange={(q) => quantity = q} />
 				<button
 					onclick={handleAddToCart}
-					disabled={adding}
+					disabled={adding || outOfStock}
 					class="flex-1 rounded-lg bg-primary-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
 				>
-					{adding ? 'Adding...' : 'Add to Cart'}
+					{#if outOfStock}
+						Out of Stock
+					{:else}
+						{adding ? 'Adding...' : 'Add to Cart'}
+					{/if}
 				</button>
 				<WishlistButton productId={product.id} class="border border-neutral-200 p-2.5" />
 			</div>

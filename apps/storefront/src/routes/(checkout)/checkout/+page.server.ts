@@ -1,8 +1,9 @@
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
-import { getCart } from '$server/medusa';
+import { getCart, getCustomerWithAddresses } from '$server/medusa';
+import type { Address } from '$server/medusa';
 
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ cookies, locals }) => {
 	const cartId = cookies.get('cart_id');
 
 	if (!cartId) {
@@ -10,12 +11,30 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	}
 
 	try {
-		const { cart } = await getCart(cartId);
-		if (!cart.items || cart.items.length === 0) {
+		const [cartResult, addresses] = await Promise.all([
+			getCart(cartId),
+			(async (): Promise<Address[]> => {
+				if (!locals.session?.medusaToken) return [];
+				try {
+					const { customer } = await getCustomerWithAddresses(locals.session.medusaToken);
+					return customer.addresses ?? [];
+				} catch {
+					return [];
+				}
+			})()
+		]);
+
+		if (!cartResult.cart.items || cartResult.cart.items.length === 0) {
 			redirect(302, '/cart');
 		}
-		return { cart };
-	} catch {
+
+		return {
+			cart: cartResult.cart,
+			addresses,
+			isLoggedIn: !!locals.session?.medusaToken
+		};
+	} catch (e) {
+		if (e && typeof e === 'object' && 'status' in e) throw e;
 		cookies.delete('cart_id', { path: '/' });
 		redirect(302, '/cart');
 	}

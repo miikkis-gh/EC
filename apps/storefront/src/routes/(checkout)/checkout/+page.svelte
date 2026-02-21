@@ -8,10 +8,36 @@
 	import PaymentForm from '$components/shop/PaymentForm.svelte';
 	import CheckoutSteps from '$components/shop/CheckoutSteps.svelte';
 	import { env } from '$env/dynamic/public';
-	import type { Cart, ShippingOption } from '$server/medusa';
+	import type { Cart, ShippingOption, Address } from '$server/medusa';
+
+	const countries = [
+		{ code: 'fi', name: 'Finland' },
+		{ code: 'se', name: 'Sweden' },
+		{ code: 'no', name: 'Norway' },
+		{ code: 'dk', name: 'Denmark' },
+		{ code: 'ee', name: 'Estonia' },
+		{ code: 'de', name: 'Germany' },
+		{ code: 'nl', name: 'Netherlands' },
+		{ code: 'be', name: 'Belgium' },
+		{ code: 'at', name: 'Austria' },
+		{ code: 'ch', name: 'Switzerland' },
+		{ code: 'fr', name: 'France' },
+		{ code: 'es', name: 'Spain' },
+		{ code: 'pt', name: 'Portugal' },
+		{ code: 'it', name: 'Italy' },
+		{ code: 'gb', name: 'United Kingdom' },
+		{ code: 'ie', name: 'Ireland' },
+		{ code: 'pl', name: 'Poland' },
+		{ code: 'cz', name: 'Czech Republic' },
+		{ code: 'lt', name: 'Lithuania' },
+		{ code: 'lv', name: 'Latvia' },
+		{ code: 'us', name: 'United States' },
+		{ code: 'ca', name: 'Canada' },
+		{ code: 'au', name: 'Australia' },
+	];
 
 	interface Props {
-		data: { cart: Cart };
+		data: { cart: Cart; addresses: Address[]; isLoggedIn: boolean };
 	}
 
 	let { data }: Props = $props();
@@ -20,15 +46,20 @@
 	// Step management: 'shipping' | 'payment'
 	let step = $state<'shipping' | 'payment'>('shipping');
 
+	// Saved address selection
+	let selectedAddressId = $state<string | null>(null);
+	let showNewAddressForm = $state(data.addresses.length === 0);
+
 	// Shipping form state
 	let email = $state('');
 	let firstName = $state('');
 	let lastName = $state('');
 	let address1 = $state('');
 	let city = $state('');
-	let countryCode = $state('us');
+	let countryCode = $state('fi');
 	let postalCode = $state('');
 	let phone = $state('');
+	let saveAddress = $state(false);
 
 	// Hydrate form fields from server data on mount
 	$effect(() => {
@@ -38,10 +69,34 @@
 		if (!lastName && c.shipping_address?.last_name) lastName = c.shipping_address.last_name;
 		if (!address1 && c.shipping_address?.address_1) address1 = c.shipping_address.address_1;
 		if (!city && c.shipping_address?.city) city = c.shipping_address.city;
-		if (countryCode === 'us' && c.shipping_address?.country_code) countryCode = c.shipping_address.country_code;
+		if (countryCode === 'fi' && c.shipping_address?.country_code) countryCode = c.shipping_address.country_code;
 		if (!postalCode && c.shipping_address?.postal_code) postalCode = c.shipping_address.postal_code;
 		if (!phone && c.shipping_address?.phone) phone = c.shipping_address.phone;
 	});
+
+	function selectAddress(addr: Address) {
+		selectedAddressId = addr.id;
+		showNewAddressForm = false;
+		firstName = addr.first_name ?? '';
+		lastName = addr.last_name ?? '';
+		address1 = addr.address_1 ?? '';
+		city = addr.city ?? '';
+		countryCode = addr.country_code ?? 'fi';
+		postalCode = addr.postal_code ?? '';
+		phone = addr.phone ?? '';
+	}
+
+	function useNewAddress() {
+		selectedAddressId = null;
+		showNewAddressForm = true;
+		firstName = '';
+		lastName = '';
+		address1 = '';
+		city = '';
+		countryCode = 'fi';
+		postalCode = '';
+		phone = '';
+	}
 
 	let shippingOptions = $state<ShippingOption[]>([]);
 	let selectedShipping = $state('');
@@ -126,6 +181,25 @@
 				throw new Error(err.error || 'Failed to save address');
 			}
 
+			// Save address to customer account if checkbox is checked
+			if (saveAddress && data.isLoggedIn && showNewAddressForm) {
+				fetch('/api/checkout/save-address', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						address: {
+							first_name: firstName,
+							last_name: lastName,
+							address_1: address1,
+							city,
+							country_code: countryCode,
+							postal_code: postalCode,
+							phone: phone || undefined
+						}
+					})
+				}).catch(() => {});
+			}
+
 			// Get shipping options
 			const optRes = await fetch('/api/checkout/shipping-options');
 			if (!optRes.ok) throw new Error('Failed to load shipping options');
@@ -181,6 +255,10 @@
 	const returnUrl = $derived(
 		`${env.PUBLIC_STORE_URL || 'http://localhost:5173'}/checkout/complete`
 	);
+
+	function formatAddress(addr: Address): string {
+		return [addr.address_1, addr.city, addr.postal_code, addr.country_code?.toUpperCase()].filter(Boolean).join(', ');
+	}
 </script>
 
 <svelte:head>
@@ -225,100 +303,142 @@
 
 					<div class="rounded-xl border border-neutral-200 bg-white p-6">
 						<h2 class="font-heading text-lg font-semibold text-neutral-900">Shipping address</h2>
-						<div class="mt-4 space-y-4">
-							<div class="grid grid-cols-2 gap-4">
-								<div class="space-y-2">
-									<Label for="first_name">First name</Label>
-									<Input
-										id="first_name"
-										name="first_name"
-										type="text"
-										autocomplete="given-name"
-										required
-										bind:value={firstName}
-									/>
-								</div>
-								<div class="space-y-2">
-									<Label for="last_name">Last name</Label>
-									<Input
-										id="last_name"
-										name="last_name"
-										type="text"
-										autocomplete="family-name"
-										required
-										bind:value={lastName}
-									/>
-								</div>
-							</div>
 
-							<div class="space-y-2">
-								<Label for="address_1">Address</Label>
-								<Input
-									id="address_1"
-									name="address_1"
-									type="text"
-									autocomplete="address-line1"
-									required
-									bind:value={address1}
-								/>
+						<!-- Saved addresses -->
+						{#if data.addresses.length > 0}
+							<div class="mt-4 space-y-2">
+								<p class="text-sm text-neutral-500">Select a saved address or enter a new one</p>
+								<div class="grid gap-2 sm:grid-cols-2">
+									{#each data.addresses as addr (addr.id)}
+										<button
+											type="button"
+											onclick={() => selectAddress(addr)}
+											class="rounded-lg border p-3 text-left text-sm transition-colors {selectedAddressId === addr.id
+												? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
+												: 'border-neutral-200 hover:border-neutral-300'}"
+										>
+											<p class="font-medium text-neutral-900">
+												{[addr.first_name, addr.last_name].filter(Boolean).join(' ')}
+											</p>
+											<p class="mt-0.5 text-neutral-500">{formatAddress(addr)}</p>
+										</button>
+									{/each}
+								</div>
+								<button
+									type="button"
+									onclick={useNewAddress}
+									class="mt-1 text-sm font-medium text-primary-600 hover:text-primary-700"
+								>
+									{showNewAddressForm ? '↑ Select a saved address' : '+ Use a different address'}
+								</button>
 							</div>
+						{/if}
 
-							<div class="grid grid-cols-2 gap-4">
-								<div class="space-y-2">
-									<Label for="city">City</Label>
-									<Input
-										id="city"
-										name="city"
-										type="text"
-										autocomplete="address-level2"
-										required
-										bind:value={city}
-									/>
+						<!-- Address form -->
+						{#if showNewAddressForm || data.addresses.length === 0}
+							<div class="mt-4 space-y-4">
+								<div class="grid grid-cols-2 gap-4">
+									<div class="space-y-2">
+										<Label for="first_name">First name</Label>
+										<Input
+											id="first_name"
+											name="first_name"
+											type="text"
+											autocomplete="given-name"
+											required
+											bind:value={firstName}
+										/>
+									</div>
+									<div class="space-y-2">
+										<Label for="last_name">Last name</Label>
+										<Input
+											id="last_name"
+											name="last_name"
+											type="text"
+											autocomplete="family-name"
+											required
+											bind:value={lastName}
+										/>
+									</div>
 								</div>
-								<div class="space-y-2">
-									<Label for="postal_code">Postal code</Label>
-									<Input
-										id="postal_code"
-										name="postal_code"
-										type="text"
-										autocomplete="postal-code"
-										required
-										bind:value={postalCode}
-									/>
-								</div>
-							</div>
 
-							<div class="grid grid-cols-2 gap-4">
 								<div class="space-y-2">
-									<Label for="country_code">Country</Label>
-									<select
-										id="country_code"
-										name="country_code"
-										autocomplete="country"
-										required
-										bind:value={countryCode}
-										class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-									>
-										<option value="us">United States</option>
-										<option value="gb">United Kingdom</option>
-										<option value="de">Germany</option>
-										<option value="fr">France</option>
-										<option value="ca">Canada</option>
-										<option value="au">Australia</option>
-									</select>
-								</div>
-								<div class="space-y-2">
-									<Label for="phone">Phone (optional)</Label>
+									<Label for="address_1">Address</Label>
 									<Input
-										id="phone"
-										name="phone"
-										type="tel"
-										autocomplete="tel"
-										bind:value={phone}
+										id="address_1"
+										name="address_1"
+										type="text"
+										autocomplete="address-line1"
+										required
+										bind:value={address1}
 									/>
 								</div>
+
+								<div class="grid grid-cols-2 gap-4">
+									<div class="space-y-2">
+										<Label for="city">City</Label>
+										<Input
+											id="city"
+											name="city"
+											type="text"
+											autocomplete="address-level2"
+											required
+											bind:value={city}
+										/>
+									</div>
+									<div class="space-y-2">
+										<Label for="postal_code">Postal code</Label>
+										<Input
+											id="postal_code"
+											name="postal_code"
+											type="text"
+											autocomplete="postal-code"
+											required
+											bind:value={postalCode}
+										/>
+									</div>
+								</div>
+
+								<div class="grid grid-cols-2 gap-4">
+									<div class="space-y-2">
+										<Label for="country_code">Country</Label>
+										<select
+											id="country_code"
+											name="country_code"
+											autocomplete="country"
+											required
+											bind:value={countryCode}
+											class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+										>
+											{#each countries as country (country.code)}
+												<option value={country.code}>{country.name}</option>
+											{/each}
+										</select>
+									</div>
+									<div class="space-y-2">
+										<Label for="phone">Phone (optional)</Label>
+										<Input
+											id="phone"
+											name="phone"
+											type="tel"
+											autocomplete="tel"
+											bind:value={phone}
+										/>
+									</div>
+								</div>
+
+								{#if data.isLoggedIn}
+									<label class="flex items-center gap-2 text-sm text-neutral-700">
+										<input
+											type="checkbox"
+											bind:checked={saveAddress}
+											class="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+										/>
+										Save this address to my account
+									</label>
+								{/if}
 							</div>
-						</div>
+						{/if}
 					</div>
 
 					{#if shippingError}

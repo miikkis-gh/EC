@@ -134,6 +134,12 @@ export interface OrderItem {
 	product_title: string | null;
 }
 
+export interface OrderFulfillment {
+	id: string;
+	tracking_links?: { tracking_number: string; url: string }[];
+	created_at: string;
+}
+
 export interface Order {
 	id: string;
 	display_id: number;
@@ -158,6 +164,7 @@ export interface Order {
 		country_code: string | null;
 		phone: string | null;
 	} | null;
+	fulfillments?: OrderFulfillment[];
 	created_at: string;
 }
 
@@ -619,7 +626,7 @@ export async function getOrder(
 	orderId: string
 ): Promise<{ order: Order }> {
 	return medusaRequest<{ order: Order }>(
-		`/orders/${orderId}?fields=+items,+shipping_address`,
+		`/orders/${orderId}?fields=+items,+shipping_address,+fulfillments,+fulfillments.tracking_links`,
 		{
 			headers: { Authorization: `Bearer ${token}` }
 		}

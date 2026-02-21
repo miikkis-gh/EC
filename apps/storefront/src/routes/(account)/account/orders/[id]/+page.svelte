@@ -2,6 +2,7 @@
 	import { Badge } from '$ui/badge';
 	import { ArrowLeft } from '@lucide/svelte';
 	import { formatPrice, formatDate } from '$utils/format';
+	import OrderTimeline from '$components/shop/OrderTimeline.svelte';
 	import type { Order } from '$server/medusa';
 
 	interface Props {
@@ -67,6 +68,11 @@
 			</div>
 		</div>
 	</section>
+
+	<!-- Timeline -->
+	<div class="mt-6">
+		<OrderTimeline {order} />
+	</div>
 
 	<!-- Items -->
 	<section class="mt-6 rounded-xl border border-neutral-200 bg-white p-6">

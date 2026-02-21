@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from '$utils';
+	import ImageLightbox from './ImageLightbox.svelte';
 
 	interface Props {
 		images: { id: string; url: string }[];
@@ -10,6 +11,7 @@
 	let { images, thumbnail, alt }: Props = $props();
 	let selectedIndex = $state(0);
 	let failedUrls = $state(new Set<string>());
+	let lightboxOpen = $state(false);
 
 	function handleImgError(url: string) {
 		failedUrls = new Set([...failedUrls, url]);
@@ -31,12 +33,23 @@
 			selectedIndex++;
 		}
 	}
+
+	function openLightbox() {
+		if (currentImage && !failedUrls.has(currentImage.url)) {
+			lightboxOpen = true;
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y_no_noninteractive_tabindex -->
 <div class="space-y-4" onkeydown={handleKeydown} tabindex="0" role="region" aria-label="Product images">
 	<!-- Main image -->
-	<div class="aspect-square overflow-hidden rounded-2xl bg-neutral-100">
+	<button
+		type="button"
+		class="block w-full aspect-square overflow-hidden rounded-2xl bg-neutral-100 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
+		onclick={openLightbox}
+		aria-label="Zoom image"
+	>
 		{#if currentImage && !failedUrls.has(currentImage.url)}
 			<img
 				src={currentImage.url}
@@ -51,7 +64,7 @@
 				</svg>
 			</div>
 		{/if}
-	</div>
+	</button>
 
 	<!-- Thumbnail grid -->
 	{#if allImages().length > 1}
@@ -85,3 +98,13 @@
 		</div>
 	{/if}
 </div>
+
+{#if allImages().length > 0}
+	<ImageLightbox
+		images={allImages()}
+		{alt}
+		bind:open={lightboxOpen}
+		startIndex={selectedIndex}
+		onclose={() => lightboxOpen = false}
+	/>
+{/if}

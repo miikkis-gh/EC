@@ -22,13 +22,26 @@
 		$page.url.searchParams.getAll('category_id')
 	);
 	const currentQuery = $derived($page.url.searchParams.get('q') || '');
+	const currentPriceMin = $derived($page.url.searchParams.get('price_min') || '');
+	const currentPriceMax = $derived($page.url.searchParams.get('price_max') || '');
 
 	let searchInput = $state('');
+	let priceMinInput = $state('');
+	let priceMaxInput = $state('');
 	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+	let priceDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
-	// Sync search input with URL on navigation
+	// Sync inputs with URL on navigation
 	$effect(() => {
 		searchInput = currentQuery;
+	});
+
+	$effect(() => {
+		priceMinInput = currentPriceMin;
+	});
+
+	$effect(() => {
+		priceMaxInput = currentPriceMax;
 	});
 
 	function updateParams(updates: Record<string, string | string[] | null>) {
@@ -86,6 +99,17 @@
 		}, 300);
 	}
 
+	function handlePriceInput(field: 'price_min' | 'price_max', e: Event) {
+		const value = (e.target as HTMLInputElement).value;
+		if (field === 'price_min') priceMinInput = value;
+		else priceMaxInput = value;
+
+		clearTimeout(priceDebounceTimer);
+		priceDebounceTimer = setTimeout(() => {
+			updateParams({ [field]: value.trim() || null });
+		}, 500);
+	}
+
 	function clearSearch() {
 		searchInput = '';
 		clearTimeout(debounceTimer);
@@ -94,15 +118,20 @@
 
 	function clearAll() {
 		searchInput = '';
+		priceMinInput = '';
+		priceMaxInput = '';
 		clearTimeout(debounceTimer);
-		updateParams({ sort: null, collection_id: null, category_id: null, q: null });
+		clearTimeout(priceDebounceTimer);
+		updateParams({ sort: null, collection_id: null, category_id: null, q: null, price_min: null, price_max: null });
 	}
 
 	const hasFilters = $derived(
 		currentSort !== 'newest' ||
 		selectedCollections.length > 0 ||
 		selectedCategories.length > 0 ||
-		currentQuery.length > 0
+		currentQuery.length > 0 ||
+		currentPriceMin.length > 0 ||
+		currentPriceMax.length > 0
 	);
 </script>
 
@@ -151,6 +180,32 @@
 				<option value="price_desc">Price: High to Low</option>
 				<option value="title_asc">Name: A–Z</option>
 			</select>
+		</div>
+
+		<!-- Price Range -->
+		<div>
+			<h3 class="mb-2 text-sm font-semibold text-neutral-900">Price Range</h3>
+			<div class="flex items-center gap-2">
+				<input
+					type="number"
+					value={priceMinInput}
+					oninput={(e) => handlePriceInput('price_min', e)}
+					placeholder="Min"
+					min="0"
+					step="1"
+					class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+				/>
+				<span class="text-neutral-400">–</span>
+				<input
+					type="number"
+					value={priceMaxInput}
+					oninput={(e) => handlePriceInput('price_max', e)}
+					placeholder="Max"
+					min="0"
+					step="1"
+					class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+				/>
+			</div>
 		</div>
 
 		<!-- Collections -->
