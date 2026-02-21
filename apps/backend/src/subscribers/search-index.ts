@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import getClient, { PRODUCTS_INDEX, productToDocument } from "../lib/meilisearch"
 import { createLogger } from "../lib/logger"
+import { invalidateStorefrontCache } from "../lib/storefront-cache"
 
 const log = createLogger("search-index")
 
@@ -15,6 +16,7 @@ export default async function searchIndexHandler({
   if (name === "product.deleted") {
     try {
       await index.deleteDocument(productId)
+      await invalidateStorefrontCache(["products", "collections"])
     } catch (error) {
       log.error("Failed to delete product from index", error, { productId })
     }
@@ -30,6 +32,7 @@ export default async function searchIndexHandler({
 
     const document = productToDocument(product)
     await index.addDocuments([document])
+    await invalidateStorefrontCache(["products", `product:${product.handle}`, "collections"])
   } catch (error) {
     log.error("Failed to index product", error, { productId })
   }

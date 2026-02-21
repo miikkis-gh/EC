@@ -2,20 +2,17 @@ import type { PageServerLoad } from './$types';
 import { getProducts, getCollections } from '$server/medusa';
 
 export const load: PageServerLoad = async () => {
-	try {
-		const [productsData, collectionsData] = await Promise.all([
-			getProducts({ limit: 8, order: '-created_at' }),
-			getCollections({ limit: 6 })
-		]);
+	const productsData = await getProducts({ limit: 8, order: '-created_at' }).catch(() => ({
+		products: []
+	}));
 
-		return {
-			products: productsData.products,
-			collections: collectionsData.collections
-		};
-	} catch {
-		return {
-			products: [],
-			collections: []
-		};
-	}
+	// Stream collections — below-fold content that doesn't block initial render
+	const collections = getCollections({ limit: 6 })
+		.then((d) => d.collections)
+		.catch(() => []);
+
+	return {
+		products: productsData.products,
+		collections
+	};
 };

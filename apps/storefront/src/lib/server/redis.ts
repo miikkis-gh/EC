@@ -5,6 +5,8 @@ const logger = createLogger('redis');
 
 let client: Redis | null = null;
 let connectionFailed = false;
+let failedAt = 0;
+const RECONNECT_COOLDOWN_MS = 30_000;
 
 function createRedisClient(): Redis | null {
 	const url = process.env.REDIS_URL;
@@ -20,6 +22,7 @@ function createRedisClient(): Redis | null {
 			if (times > 10) {
 				logger.error('Redis retry limit reached, giving up');
 				connectionFailed = true;
+				failedAt = Date.now();
 				return null;
 			}
 			const delay = Math.min(times * 200, 5000);
@@ -42,6 +45,7 @@ function createRedisClient(): Redis | null {
 
 	redis.connect().catch((err) => {
 		connectionFailed = true;
+		failedAt = Date.now();
 		logger.error('Redis initial connection failed', err);
 	});
 
@@ -49,7 +53,16 @@ function createRedisClient(): Redis | null {
 }
 
 export function getRedisClient(): Redis | null {
-	if (connectionFailed) return null;
+	if (connectionFailed) {
+		if (Date.now() - failedAt < RECONNECT_COOLDOWN_MS) return null;
+		// Cooldown elapsed — attempt fresh connection
+		logger.info('Redis reconnect cooldown elapsed, attempting fresh connection');
+		connectionFailed = false;
+		if (client) {
+			client.disconnect();
+			client = null;
+		}
+	}
 	if (!client) {
 		client = createRedisClient();
 	}

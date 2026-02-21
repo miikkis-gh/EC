@@ -11,6 +11,7 @@
 	let collectionsOpen = $state(false);
 	let hoverTimeout: ReturnType<typeof setTimeout> | undefined;
 	let closeTimeout: ReturnType<typeof setTimeout> | undefined;
+	let triggerEl: HTMLAnchorElement | undefined = $state();
 
 	function openDropdown() {
 		clearTimeout(closeTimeout);
@@ -26,10 +27,24 @@
 		}, 150);
 	}
 
+	function toggleDropdown(e: MouseEvent) {
+		e.preventDefault();
+		collectionsOpen = !collectionsOpen;
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			collectionsOpen = false;
+			triggerEl?.focus();
 		}
+	}
+
+	function closeOnFocusOut(e: FocusEvent) {
+		const container = (e.currentTarget as HTMLElement);
+		const relatedTarget = e.relatedTarget as Node | null;
+		if (relatedTarget && container.contains(relatedTarget)) return;
+		clearTimeout(hoverTimeout);
+		collectionsOpen = false;
 	}
 
 	const navLinkClass = (href: string) =>
@@ -48,16 +63,18 @@
 	{#if collections.length > 0}
 		<div
 			class="relative"
-			role="navigation"
 			onmouseenter={openDropdown}
 			onmouseleave={closeDropdown}
 			onkeydown={handleKeydown}
+			onfocusout={closeOnFocusOut}
 		>
 			<a
+				bind:this={triggerEl}
 				href="/collections"
 				class="{navLinkClass('/collections')} inline-flex items-center gap-1"
 				aria-expanded={collectionsOpen}
 				aria-haspopup="true"
+				onclick={toggleDropdown}
 			>
 				Collections
 				<svg
@@ -74,13 +91,11 @@
 			{#if collectionsOpen}
 				<div
 					class="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 rounded-lg border border-neutral-200 bg-white p-4 shadow-lg"
-					role="menu"
 				>
 					<div class="grid w-max gap-1 {collections.length > 6 ? 'grid-cols-3' : collections.length > 3 ? 'grid-cols-2' : 'grid-cols-1'}" style="min-width: 12rem;">
 						{#each collections as collection (collection.id)}
 							<a
 								href="/collections/{collection.handle}"
-								role="menuitem"
 								class="rounded-md px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900 whitespace-nowrap"
 								onclick={() => collectionsOpen = false}
 							>
@@ -91,7 +106,6 @@
 					<div class="mt-2 border-t border-neutral-100 pt-2">
 						<a
 							href="/collections"
-							role="menuitem"
 							class="block rounded-md px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 hover:text-primary-700"
 							onclick={() => collectionsOpen = false}
 						>

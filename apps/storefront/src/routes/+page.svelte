@@ -68,24 +68,28 @@
 	</section>
 {/if}
 
-<!-- Collections -->
-{#if data.collections.length > 0}
-	<section class="bg-neutral-50">
-		<div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-			<h2 class="mb-8 font-heading text-2xl font-bold text-neutral-900">Collections</h2>
-			<div bind:this={collectionsEl} class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-				{#each data.collections as collection (collection.id)}
-					<a
-						href="/collections/{collection.handle}"
-						class="group rounded-xl border border-neutral-200 bg-white p-6 transition-shadow hover:shadow-lg"
-					>
-						<h3 class="font-heading text-lg font-semibold text-neutral-900 group-hover:text-primary-600">
-							{collection.title}
-						</h3>
-						<p class="mt-2 text-sm text-neutral-500">Browse collection &rarr;</p>
-					</a>
-				{/each}
+<!-- Collections (streamed) -->
+{#await data.collections then collections}
+	{#if collections.length > 0}
+		<section class="bg-neutral-50">
+			<div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+				<h2 class="mb-8 font-heading text-2xl font-bold text-neutral-900">Collections</h2>
+				<div bind:this={collectionsEl} class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+					{#each collections as collection (collection.id)}
+						<a
+							href="/collections/{collection.handle}"
+							class="group rounded-xl border border-neutral-200 bg-white p-6 transition-shadow hover:shadow-lg"
+						>
+							<h3 class="font-heading text-lg font-semibold text-neutral-900 group-hover:text-primary-600">
+								{collection.title}
+							</h3>
+							<p class="mt-2 text-sm text-neutral-500">Browse collection &rarr;</p>
+						</a>
+					{/each}
+				</div>
 			</div>
-		</div>
-	</section>
-{/if}
+		</section>
+	{/if}
+{:catch}
+	<!-- Collections failed to load — silently omit -->
+{/await}
