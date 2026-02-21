@@ -7,8 +7,8 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		redirect(302, '/login');
 	}
 
-	if (!locals.user.onboardedAt) {
-		redirect(302, '/welcome');
+	if (locals.user.onboardedAt) {
+		redirect(302, '/account');
 	}
 
 	let customer = null;
@@ -23,6 +23,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 	return {
 		user: locals.user,
-		customer
+		customer,
+		isOnboarding: true
 	};
 };

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
 	import { Button } from '$ui/button';
 	import { Input } from '$ui/input';
 	import { Label } from '$ui/label';
@@ -20,6 +19,7 @@
 				addresses?: { id: string }[];
 			} | null;
 			customerName: string | null;
+			resumeStep: number;
 		};
 		form: {
 			action?: 'updateProfile' | 'addAddress';
@@ -31,9 +31,9 @@
 	let { data, form }: Props = $props();
 
 	const TOTAL_STEPS = 4;
-	let currentStep = $state(0);
-	let profileSaved = $state(false);
-	let addressSaved = $state(false);
+	let currentStep = $state(data.resumeStep);
+	let profileSaved = $state(data.resumeStep >= 2);
+	let addressSaved = $state(data.resumeStep >= 3);
 	let submitting = $state(false);
 
 	// Refs for step containers
@@ -63,7 +63,6 @@
 
 	async function goToStep(next: number) {
 		const outEl = getStepEl(currentStep);
-		const prev = currentStep;
 		currentStep = next;
 		await tick();
 		const inEl = getStepEl(next);
@@ -102,7 +101,7 @@
 	}
 
 	onMount(() => {
-		const firstStep = getStepEl(0);
+		const firstStep = getStepEl(currentStep);
 		if (firstStep) {
 			gsap.fromTo(firstStep, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
 		}
@@ -146,7 +145,7 @@
 					</div>
 
 					<h1 class="font-heading text-2xl font-bold text-neutral-900" tabindex="-1">{greeting}</h1>
-					<p class="mt-2 text-sm text-neutral-500">Your account is ready. Let's set up a few things to improve your shopping experience.</p>
+					<p class="mt-2 text-sm text-neutral-500">Your account is ready. Let's set up your profile and shipping address to get started.</p>
 				</div>
 
 				<!-- Feature highlights -->
@@ -174,11 +173,8 @@
 					</div>
 				</div>
 
-				<div class="mt-8 space-y-3">
+				<div class="mt-8">
 					<Button class="w-full" onclick={() => goToStep(1)}>Let's get started</Button>
-					<p class="text-center">
-						<a href="/account" class="text-sm text-neutral-400 hover:text-neutral-600">Skip to my account</a>
-					</p>
 				</div>
 			</div>
 		{/if}
@@ -219,6 +215,7 @@
 								name="first_name"
 								type="text"
 								autocomplete="given-name"
+								required
 								value={data.customer?.first_name ?? ''}
 							/>
 						</div>
@@ -229,6 +226,7 @@
 								name="last_name"
 								type="text"
 								autocomplete="family-name"
+								required
 								value={data.customer?.last_name ?? ''}
 							/>
 						</div>
@@ -253,10 +251,6 @@
 						</Button>
 					</div>
 				</form>
-
-				<p class="mt-4 text-center">
-					<button type="button" onclick={() => goToStep(2)} class="text-sm text-neutral-400 hover:text-neutral-600">Skip</button>
-				</p>
 			</div>
 		{/if}
 
@@ -380,10 +374,6 @@
 						</Button>
 					</div>
 				</form>
-
-				<p class="mt-4 text-center">
-					<button type="button" onclick={() => goToStep(3)} class="text-sm text-neutral-400 hover:text-neutral-600">Skip</button>
-				</p>
 			</div>
 		{/if}
 
@@ -435,13 +425,12 @@
 
 				<!-- CTAs -->
 				<div data-reveal class="mt-8 space-y-3">
-					<Button href="/" class="w-full">
-						<ShoppingBag class="h-4 w-4" />
-						Start shopping
-					</Button>
-					<Button href="/account" variant="outline" class="w-full">
-						Go to my account
-					</Button>
+					<form method="POST" action="?/completeOnboarding" use:enhance>
+						<Button type="submit" class="w-full">
+							<ShoppingBag class="h-4 w-4" />
+							Start shopping
+						</Button>
+					</form>
 				</div>
 			</div>
 		{/if}

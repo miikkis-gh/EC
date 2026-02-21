@@ -2,17 +2,23 @@ import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { profileSchema, addressSchema } from '$utils/validation';
 import { updateCustomer, addCustomerAddress } from '$server/medusa';
+import { markUserOnboarded } from '$server/user';
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { customer } = await parent();
 
-	// If user already has a name and at least one address, skip onboarding
-	if (customer?.first_name && customer.addresses?.length > 0) {
-		redirect(302, '/account');
+	// Determine which step to resume at based on existing Medusa data
+	let resumeStep = 0;
+	if (customer?.first_name) {
+		resumeStep = 2; // Profile done, go to address
+		if (customer.addresses?.length > 0) {
+			resumeStep = 3; // Address done too, go to completion
+		}
 	}
 
 	return {
-		customerName: customer?.first_name ?? null
+		customerName: customer?.first_name ?? null,
+		resumeStep
 	};
 };
 
@@ -73,5 +79,14 @@ export const actions: Actions = {
 				error: err instanceof Error ? err.message : 'Failed to add address'
 			});
 		}
+	},
+
+	completeOnboarding: async ({ locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		await markUserOnboarded(locals.user.id);
+		redirect(302, '/account');
 	}
 };

@@ -7,6 +7,7 @@ export interface AuthUser {
 	id: string;
 	email: string;
 	medusaCustomerId: string | null;
+	onboardedAt: Date | null;
 }
 
 export interface Session {
@@ -60,9 +61,10 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 		expires_at: Date;
 		email: string;
 		medusa_customer_id: string | null;
+		onboarded_at: Date | null;
 	}>(
 		`SELECT s.id, s.user_id, s.medusa_token, s.expires_at,
-				u.email, u.medusa_customer_id
+				u.email, u.medusa_customer_id, u.onboarded_at
 		 FROM user_session s
 		 JOIN auth_user u ON s.user_id = u.id
 		 WHERE s.id = $1`,
@@ -97,7 +99,8 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 	const user: AuthUser = {
 		id: row.user_id,
 		email: row.email,
-		medusaCustomerId: row.medusa_customer_id
+		medusaCustomerId: row.medusa_customer_id,
+		onboardedAt: row.onboarded_at ? new Date(row.onboarded_at) : null
 	};
 
 	return { session, user };

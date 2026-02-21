@@ -10,7 +10,7 @@
 	import SearchOverlay from '$components/shop/SearchOverlay.svelte';
 	import { Toaster } from '$ui/sonner';
 	import { cart } from '$stores/cart';
-	import { navigating } from '$app/stores';
+	import { navigating, page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { Snippet } from 'svelte';
@@ -40,6 +40,8 @@
 		}
 	});
 
+	const isOnboarding = $derived(!!$page.data.isOnboarding);
+
 	function handleKeydown(e: KeyboardEvent) {
 		if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
 			e.preventDefault();
@@ -62,36 +64,40 @@
 	</div>
 {/if}
 
-<a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-neutral-900 focus:shadow-lg focus:ring-2 focus:ring-primary-600">
-	Skip to content
-</a>
+{#if isOnboarding}
+	{@render children()}
+{:else}
+	<a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-neutral-900 focus:shadow-lg focus:ring-2 focus:ring-primary-600">
+		Skip to content
+	</a>
 
-<div class="flex min-h-screen flex-col">
-	<AnnouncementBar
-		message="Free shipping on orders over €50"
-		link={{ href: '/products', label: 'Shop now' }}
-	/>
-	<Header
-		user={data.user}
-		onToggleMobileMenu={() => mobileMenuOpen = !mobileMenuOpen}
-		onToggleSearch={() => searchOpen = !searchOpen}
-	/>
-	<MobileMenu
-		user={data.user}
-		open={mobileMenuOpen}
-		onclose={() => mobileMenuOpen = false}
-	/>
-	<main id="main-content" class="flex-1">
-		{@render children()}
-	</main>
-	<Footer />
-</div>
+	<div class="flex min-h-screen flex-col">
+		<AnnouncementBar
+			message="Free shipping on orders over €50"
+			link={{ href: '/products', label: 'Shop now' }}
+		/>
+		<Header
+			user={data.user}
+			onToggleMobileMenu={() => mobileMenuOpen = !mobileMenuOpen}
+			onToggleSearch={() => searchOpen = !searchOpen}
+		/>
+		<MobileMenu
+			user={data.user}
+			open={mobileMenuOpen}
+			onclose={() => mobileMenuOpen = false}
+		/>
+		<main id="main-content" class="flex-1">
+			{@render children()}
+		</main>
+		<Footer />
+	</div>
 
-<CartDrawer />
-<SearchOverlay
-	open={searchOpen}
-	onclose={() => searchOpen = false}
-/>
+	<CartDrawer />
+	<SearchOverlay
+		open={searchOpen}
+		onclose={() => searchOpen = false}
+	/>
+{/if}
 <Toaster richColors position="bottom-right" />
 
 <style>
