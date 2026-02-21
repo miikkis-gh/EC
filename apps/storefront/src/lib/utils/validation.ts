@@ -98,3 +98,16 @@ export const profileSchema = z.object({
 	last_name: z.string().max(100).optional(),
 	phone: z.string().max(20).optional()
 });
+
+// --- Review schemas ---
+
+export const reviewSchema = z.object({
+	productId: z.string().min(1, 'Product ID is required'),
+	rating: z.coerce.number().int().min(1).max(5),
+	title: z.string().min(1, 'Title is required').max(200),
+	content: z.string().max(5000).optional()
+});
+
+export const reviewDeleteSchema = z.object({
+	reviewId: z.string().min(1, 'Review ID is required')
+});

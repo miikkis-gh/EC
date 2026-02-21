@@ -7,15 +7,23 @@
 	import RelatedProducts from '$components/shop/RelatedProducts.svelte';
 	import RecentlyViewed from '$components/shop/RecentlyViewed.svelte';
 	import WishlistButton from '$components/shop/WishlistButton.svelte';
+	import ReviewSection from '$components/shop/ReviewSection.svelte';
 	import { addToCartOptimistic } from '$stores/cart';
 	import { addRecentlyViewed } from '$stores/recently-viewed';
 	import { fadeInUp } from '$utils/animations';
 	import { buildProductJsonLd } from '$utils/seo';
 	import { page } from '$app/stores';
 	import type { Product } from '$server/medusa';
+	import type { Review, ReviewStats } from '$server/reviews';
 
 	interface Props {
-		data: { product: Product; relatedProducts: Product[] };
+		data: {
+			product: Product;
+			relatedProducts: Product[];
+			reviews: Review[];
+			reviewStats: ReviewStats;
+			userReview: Review | null;
+		};
 	}
 
 	let { data }: Props = $props();
@@ -100,7 +108,7 @@
 			{/if}
 
 			<h1 class="mt-2 font-heading text-3xl font-bold text-neutral-900">{product.title}</h1>
-			<ReviewStars rating={4.5} count={24} class="mt-2" />
+			<ReviewStars rating={data.reviewStats.averageRating} count={data.reviewStats.totalCount} clickable class="mt-2" />
 
 			<PriceDisplay
 				amount={price}
@@ -146,6 +154,12 @@
 		</div>
 	</div>
 
+	<ReviewSection
+		productId={product.id}
+		reviews={data.reviews}
+		stats={data.reviewStats}
+		userReview={data.userReview}
+	/>
 	<RelatedProducts products={data.relatedProducts} />
 	<RecentlyViewed currentProductId={product.id} />
 </div>

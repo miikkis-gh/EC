@@ -2,8 +2,10 @@ import type { PageServerLoad } from './$types';
 import { getProductByHandle, getProducts } from '$server/medusa';
 import { error } from '@sveltejs/kit';
 import type { Product } from '$server/medusa';
+import { getProductReviews, getProductReviewStats, getUserReview } from '$server/reviews';
+import type { Review, ReviewStats } from '$server/reviews';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
 	try {
 		const data = await getProductByHandle(params.handle);
 		const product = data.products[0];
@@ -37,7 +39,23 @@ export const load: PageServerLoad = async ({ params }) => {
 			// Related products are non-critical
 		}
 
-		return { product, relatedProducts };
+		// Fetch review data (non-critical, don't fail the page)
+		let reviews: Review[] = [];
+		let reviewStats: ReviewStats = { averageRating: 0, totalCount: 0, distribution: [0, 0, 0, 0, 0] };
+		let userReview: Review | null = null;
+		try {
+			[reviews, reviewStats] = await Promise.all([
+				getProductReviews(product.id),
+				getProductReviewStats(product.id)
+			]);
+			if (locals.user) {
+				userReview = await getUserReview(locals.user.id, product.id);
+			}
+		} catch {
+			// Reviews are non-critical
+		}
+
+		return { product, relatedProducts, reviews, reviewStats, userReview };
 	} catch (e) {
 		if (e && typeof e === 'object' && 'status' in e) throw e;
 		throw error(404, 'Product not found');
